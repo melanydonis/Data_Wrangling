@@ -1,5 +1,0 @@
-"0","df$Column4 <- 11:16"
-"0","new_elements <- c(""new_string"", 19, ""z"")"
-"0","df <- rbind(df, new_elements)"
-"0","df_copy <- rbind(df_copy, new_elements)"
-"0","df"

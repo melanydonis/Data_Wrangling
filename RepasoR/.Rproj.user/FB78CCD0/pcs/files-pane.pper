@@ -1,8 +1,8 @@
 {
-    "path" : "~/Desktop/RepasoR",
+    "path" : "~/Desktop/Data Wrangling/Github/RepasoR",
     "sortOrder" : [
         {
-            "ascending" : true,
+            "ascending" : false,
             "columnIndex" : 2
         }
     ]

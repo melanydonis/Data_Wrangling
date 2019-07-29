@@ -2,7 +2,7 @@
 title: "Repaso"
 author: "Melany 20170474"
 date: "7/24/2019"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 # El cache = TRUE hace que los chuncks esten conectados, para no cargar las librerias cada vez  y echo = TRUE para mostrar lo que esta ahi.

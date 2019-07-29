@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1564426950475.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "948415767",
+    "id" : "25B3159D",
+    "lastKnownWriteTime" : 1564429942,
+    "last_content_update" : 1564429942,
+    "path" : "~/Desktop/Data Wrangling/Clase 2.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "18,46",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

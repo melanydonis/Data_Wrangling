@@ -1,0 +1,38 @@
+library(readr)
+library(tidyverse)
+library(tidytext)
+text_file <- 'data/quijote.txt'
+readLines(text_file, n=10, encoding = "UTF-8", skipNul = TRUE) #skipnul quita los espacios
+
+#usando readr
+quijote_lines <- read_lines(text_file) #Esto hace lo mismo que lo de arriba
+quijote_lines
+
+#performance de funciones
+system.time(readLines(text_file, encoding = "UTF-8", skipNul = TRUE))
+system.time(read_lines(text_file))
+
+#obtener partes de un string, 10 primeros caracteres de cada linea, del 1 al 10. Es mas rapido porque lo aplica a todo.
+substr(quijote_lines, 1,10)
+
+#tokenizar, volver cada palabra de las lineas en un elemento
+quijote_frame <- data.frame(txt=quijote_lines)
+head(quijote_frame)
+quijote_frame$txt <- as.character(quijote_frame$txt)
+quijote_words <- unnest_tokens(quijote_frame, input = txt, output = words, token = "words") #cada elemento es una fila
+head(quijote_words)
+
+# Contar
+quijote_count <- count(quijote_words, words, sort = TRUE)
+quijote_count
+class(quijote_count)
+
+#limpiar stopwords(articulos o preposiciones que no agregan valor)
+library(quanteda)
+spanish_stopwords <- data.frame(words=quanteda::stopwords(language= "es"))
+view(spanish_stopwords)
+
+#antijoin, quita lo que esta en comun de ambos dataframe, que son los stopwords
+quijote_words_clean <- anti_join(quijote_words, spanish_stopwords)
+quijote_count <- count(quijote_words_clean, words, sort = TRUE)
+quijote_count
