@@ -6,16 +6,6 @@ output: rmarkdown::github_document
 ---
 
 # El cache = TRUE hace que los chuncks esten conectados, para no cargar las librerias cada vez  y echo = TRUE para mostrar lo que esta ahi.
-# Instalar librerias 
-```{r, cache = TRUE, echo = TRUE}
-install.packages("dplyr")
-install.packages("RMySQL")
-install.packages("lubridate")
-install.packages("openxlsx")
-install.packages("tidyverse")
-install.packages("stringr")
-install.packages("readr")
-```
 
 # si no tuviera dbplyr con require solo me sale que no lo tengo y sigue cargando el codigo, con library deja de cargar cuando sale error.
 # Cargar librerias 
@@ -78,7 +68,7 @@ list_1$second[2]
 ```
 
 # Matrices
-```{r, cache = True}
+```{r, cache = TRUE}
 matrix(data = 1, nrow = 4, ncol = 5)
 vector_5 <- c(1:5)
 vector_6 <- c(6:10)
@@ -111,7 +101,36 @@ tail(df)
 df$Column4 <- 11:16
 new_elements <- c("new_string", 19, "z")
 df <- rbind(df, new_elements)
-df_copy <- rbind(df_copy, new_elements)
+df_copy <- rbind(df, new_elements)
 df
+```
+
+```{r, cache = TRUE, echo=TRUE}
+find_sample <- function(x){
+  for_index <- sample(1:nrow(x), size = 10, replace = FALSE)
+  new_df <- x[for_index,]
+  return(new_df)
+}
+data <- data.frame(
+  a = 1:10,
+  b = sample(c("GT","US","CA"), size = 10, replace = TRUE)
+)
+find_sample(data)
+```
+
+```{r}
+generate_df <- function(x){
+  df<- data.frame(
+    a = sample(letters, size = 10, replace = TRUE),
+    b = sample (1:10, size = 10, replace = TRUE)
+  )
+  return(df)
+}
+generate_df(1)
+result_list <- list()
+#system.time(for(i in 1:10000){
+#result_list[[i]] <- generate_df(1)
+#})
+system.time(lapply(1:100000, generate_df)) #lapply sirve para seguir aplicando un vector a una lista, devuelve una lista.
 ```
 
