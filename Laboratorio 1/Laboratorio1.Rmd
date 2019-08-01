@@ -1,0 +1,91 @@
+---
+title: "Laboratorio 1"
+author: "Melany 20170474"
+date: "7/29/2019"
+output: rmarkdown::github_document
+---
+```{r}
+library(readr)
+library(tidyverse)
+library(tidytext)
+library(quanteda)
+library(readxl)
+library(openxlsx)
+```
+
+```{r}
+#Problema 1
+filenames <- list.files(path ="Datos", full.names=TRUE)  
+All <- lapply(filenames, function(i){
+  df <- read_excel(i)
+  df$mes <- substr(i,7,8)
+  df$año <- substr(i,10,13)
+  return(df[,c("COD_VIAJE", "CLIENTE", "UBICACION", "CANTIDAD", "PILOTO", "Q", "CREDITO", "UNIDAD", "mes", "año")])
+})
+All
+```
+
+```{r}
+all <- do.call(rbind,All)
+all
+```
+
+```{r}
+library(readr)
+write.csv(all, "lab1.csv")
+```
+
+```{r}
+#Ejercicio 2
+a = sample (1:5, size = 10, replace = TRUE)
+b = sample (1:5, size = 10, replace = TRUE)
+c = sample (1:5, size = 10, replace = TRUE)
+lista <- list(a,b,c)
+#tab cuenta cuantas veces aparace cada elemento, 
+moda <- function(x) {
+  ux <- unique(x)
+  tab <- tabulate(match(x, ux))
+  ux[tab == max(tab)]
+}
+result <- lapply(lista,moda)
+print(result)
+```
+
+```{r}
+#Ejercicio 3
+SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt',delim= "|")
+head(SAT)
+```
+
+```{r}
+#BEATLES
+beatles_lines <- read_lines('/Users/melany/Desktop/Data Wrangling/data/beatles.txt')
+```
+
+```{r}
+beatles_frame <- data.frame(txt=beatles_lines)
+head(beatles_frame)
+beatles_frame$txt <- as.character(beatles_frame$txt)
+beatles_words <- unnest_tokens(beatles_frame, input = txt, output = words, token = "words")
+beatles_words
+```
+
+```{r}
+beatles_count <- count(beatles_words, words, sort=TRUE)
+beatles_count
+```
+
+```{r}
+en_stopwords <- data.frame(words=quanteda:: stopwords("en"))
+head(en_stopwords)
+```
+
+```{r}
+beatles_words_clean <- anti_join(beatles_words,en_stopwords)
+head(beatles_words_clean)
+```
+
+```{r}
+beatles_count_clean <- count(beatles_words_clean, words, sort = TRUE)
+beatles_count_clean
+```

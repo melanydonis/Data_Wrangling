@@ -1,0 +1,39 @@
+---
+title: "Beatles"
+author: "Melany 20170474"
+date: "7/29/2019"
+output: html_document
+---
+```{r}
+library(readr)
+library(tidyverse)
+library(tidytext)
+library(quanteda)
+text_file <- 'data/beatles.txt'
+beatles_lines <- read_lines(text_file)
+```
+
+```{r}
+beatles_frame <- data.frame(txt=beatles_lines)
+head(beatles_frame)
+beatles_frame$txt<- as.character(beatles_frame$txt)
+beatles_words <- unnest_tokens(beatles_frame, input = txt, output = words, token = "words") 
+head(beatles_words)
+```
+
+```{r}
+beatles_count <- count(beatles_words, words, sort = TRUE)
+beatles_count
+```
+
+```{r}
+stopwords <- data.frame(words=quanteda::stopwords("en"))
+view(stop_words)
+```
+
+```{r}
+beatles_words_clean <- anti_join(beatles_words,stopwords)
+beatles_count_clean <- count(beatles_words_clean,words, sort = TRUE)
+beatles_count_clean
+```
+

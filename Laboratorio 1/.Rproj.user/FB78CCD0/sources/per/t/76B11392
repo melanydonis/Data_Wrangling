@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1564442158550.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1654899387",
+    "id" : "76B11392",
+    "lastKnownWriteTime" : 1564441854,
+    "last_content_update" : 1564441854,
+    "path" : "~/Desktop/Data Wrangling/Songs.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "7,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

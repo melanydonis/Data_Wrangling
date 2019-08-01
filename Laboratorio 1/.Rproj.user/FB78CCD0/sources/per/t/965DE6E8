@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1564442313347.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "364365304",
+    "id" : "965DE6E8",
+    "lastKnownWriteTime" : 1564442279,
+    "last_content_update" : 1564442321082,
+    "path" : "~/Desktop/Data Wrangling/Github/Clase 2/Beatles.Rmd",
+    "project_path" : "Beatles.Rmd",
+    "properties" : {
+        "cursorPosition" : "12,43",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
