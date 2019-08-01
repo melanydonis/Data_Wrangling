@@ -5,7 +5,7 @@ date: "8/1/2019"
 output: rmarkdown::github_document
 ---
 
-```{r, cache = TRUE}
+```{r}
 library(readr)
 library(tidyverse)
 library(tidytext)
@@ -36,7 +36,7 @@ library(readr)
 write.csv(all, "lab1.csv")
 ```
 
-```{r, cache = TRUE}
+```{r}
 #Ejercicio 2
 a = sample (1:5, size = 10, replace = TRUE)
 b = sample (1:5, size = 10, replace = TRUE)
@@ -58,7 +58,7 @@ SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.tx
 head(SAT)
 ```
 
-```{r, cache = TRUE}
+```{r}
 #BEATLES
 beatles_lines <- read_lines('/Users/melany/Desktop/Data Wrangling/data/beatles.txt')
 ```
@@ -68,12 +68,12 @@ beatles_frame <- data.frame(txt=beatles_lines)
 head(beatles_frame)
 beatles_frame$txt <- as.character(beatles_frame$txt)
 beatles_words <- unnest_tokens(beatles_frame, input = txt, output = words, token = "words")
-beatles_words
+head(beatles_words)
 ```
 
 ```{r}
 beatles_count <- count(beatles_words, words, sort=TRUE)
-beatles_count
+head(beatles_count)
 ```
 
 ```{r}
@@ -88,5 +88,5 @@ head(beatles_words_clean)
 
 ```{r}
 beatles_count_clean <- count(beatles_words_clean, words, sort = TRUE)
-beatles_count_clean
+head(beatles_count_clean)
 ```
