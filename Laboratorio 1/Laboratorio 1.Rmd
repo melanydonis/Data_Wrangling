@@ -2,10 +2,10 @@
 title: "Laboratorio 1"
 author: "Melany 20170474"
 date: "8/1/2019"
-output:  rmarkdown::github_document
+output: rmarkdown::github_document
 ---
 
-```{r}
+```{r, cache = TRUE}
 library(readr)
 library(tidyverse)
 library(tidytext)
@@ -14,7 +14,7 @@ library(readxl)
 library(openxlsx)
 ```
 
-```{r}
+```{r, cache = TRUE}
 #Problema 1
 filenames <- list.files(path ="Datos", full.names=TRUE)  
 All <- lapply(filenames, function(i){
@@ -26,17 +26,17 @@ All <- lapply(filenames, function(i){
 All
 ```
 
-```{r}
+```{r, cache = TRUE}
 all <- do.call(rbind,All)
 all
 ```
 
-```{r}
+```{r, cache = TRUE}
 library(readr)
 write.csv(all, "lab1.csv")
 ```
 
-```{r}
+```{r, cache = TRUE}
 #Ejercicio 2
 a = sample (1:5, size = 10, replace = TRUE)
 b = sample (1:5, size = 10, replace = TRUE)
@@ -52,13 +52,13 @@ result <- lapply(lista,moda)
 print(result)
 ```
 
-```{r}
+```{r, cache = TRUE}
 #Ejercicio 3
 SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt',delim= "|")
 head(SAT)
 ```
 
-```{r}
+```{r, cache = TRUE}
 #BEATLES
 beatles_lines <- read_lines('/Users/melany/Desktop/Data Wrangling/data/beatles.txt')
 ```
