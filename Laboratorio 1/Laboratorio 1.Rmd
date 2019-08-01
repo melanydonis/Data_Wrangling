@@ -1,9 +1,10 @@
 ---
 title: "Laboratorio 1"
 author: "Melany 20170474"
-date: "7/29/2019"
-output: rmarkdown::github_document
+date: "8/1/2019"
+output:  rmarkdown::github_document
 ---
+
 ```{r}
 library(readr)
 library(tidyverse)
@@ -53,7 +54,7 @@ print(result)
 
 ```{r}
 #Ejercicio 3
-SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt',delim= "|")
+SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt',delim= "|")
 head(SAT)
 ```
 

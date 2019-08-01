@@ -1,7 +1,7 @@
 Laboratorio 1
 ================
 Melany 20170474
-7/29/2019
+8/1/2019
 
 ``` r
 library(readr)
@@ -282,17 +282,17 @@ print(result)
 ```
 
     ## [[1]]
-    ## [1] 5
+    ## [1] 4 5 3
     ## 
     ## [[2]]
-    ## [1] 5 3
+    ## [1] 1 3
     ## 
     ## [[3]]
-    ## [1] 1
+    ## [1] 3
 
 ``` r
 #Ejercicio 3
-SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt',delim= "|")
+SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt',delim= "|")
 ```
 
     ## Warning: Missing column names filled in: 'X11' [11]
@@ -313,13 +313,13 @@ SAT <- read_delim('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PAR
     ## )
 
     ## Warning: 2362740 parsing failures.
-    ## row col   expected     actual                                                                                  file
-    ##   1  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt'
-    ##   2  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt'
-    ##   3  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt'
-    ##   4  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt'
-    ##   5  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 1/PARQUE_VEHICULAR_0119.txt'
-    ## ... ... .......... .......... .....................................................................................
+    ## row col   expected     actual                                                             file
+    ##   1  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt'
+    ##   2  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt'
+    ##   3  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt'
+    ##   4  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt'
+    ##   5  -- 11 columns 10 columns '/Users/melany/Desktop/Data Wrangling/PARQUE_VEHICULAR_0119.txt'
+    ## ... ... .......... .......... ................................................................
     ## See problems(...) for more details.
 
 ``` r

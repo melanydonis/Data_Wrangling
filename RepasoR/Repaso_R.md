@@ -6,9 +6,6 @@ Melany 20170474
 El cache = TRUE hace que los chuncks esten conectados, para no cargar las librerias cada vez y echo = TRUE para mostrar lo que esta ahi.
 ========================================================================================================================================
 
-Instalar librerias
-==================
-
 si no tuviera dbplyr con require solo me sale que no lo tengo y sigue cargando el codigo, con library deja de cargar cuando sale error.
 =======================================================================================================================================
 
@@ -58,7 +55,7 @@ require(tidyverse)
 
     ## Loading required package: tidyverse
 
-    ## ── Attaching packages ──────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ──────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
@@ -71,7 +68,7 @@ require(tidyverse)
 
     ## Warning: package 'stringr' was built under R version 3.5.2
 
-    ## ── Conflicts ─────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ─────────── tidyverse_conflicts() ──
     ## ✖ lubridate::as.difftime() masks base::as.difftime()
     ## ✖ lubridate::date()        masks base::date()
     ## ✖ dplyr::filter()          masks stats::filter()
@@ -166,13 +163,13 @@ Vectors
 sample (x= 1:100, size = 8, replace =FALSE) # replace = false no repite los numeros
 ```
 
-    ## [1] 74 31 23  9 52 90 34 98
+    ## [1] 41 94 42 81 51 76 10 84
 
 ``` r
 sample (x= 1:5, size = 8, replace =TRUE)
 ```
 
-    ## [1] 2 4 2 4 1 5 1 1
+    ## [1] 4 2 2 4 5 3 5 1
 
 ``` r
 vector_1 <- c(1:5, "A") #Con el A vuelve los numeros a string, pero el A no puede convertirse a int
@@ -395,4 +392,4 @@ system.time(lapply(1:100000, generate_df)) #lapply sirve para seguir aplicando u
 ```
 
     ##    user  system elapsed 
-    ##  28.918   0.227  29.399
+    ##  27.855   0.185  28.228
