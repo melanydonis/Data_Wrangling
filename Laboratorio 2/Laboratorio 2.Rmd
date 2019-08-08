@@ -1,0 +1,150 @@
+---
+title: "Laboratorio 2"
+author: "Melany 20170474"
+date: "8/7/2019"
+output: rmarkdown::github_document
+---
+```{r, cache = TRUE, echo=FALSE}
+require(RMySQL)
+connection_name <- "datawrangling.co4pgsadnasr.us-east-2.rds.amazonaws.com"
+db_name <- "dataWrangling"
+user <- "dstrack"
+password <- "datawrangling2019"
+drv = dbDriver("MySQL")
+mydb = dbConnect(drv,host=connection_name,dbname=db_name,user=user,pass=password)
+```
+
+```{r}
+dbListFields(mydb, "heroes_information")
+```
+
+```{r}
+#Ejercicio 1
+#Use datawrangling (no necesario porque solo hay una base de datos)
+#Select field   from table;
+Query<- "Select name, Publisher from heroes_information"
+hero <- dbGetQuery(mydb, Query)
+head(hero)
+```
+
+```{r}
+#Ejercicio 2
+#Select distinct field  from table
+Query<- "Select distinct Publisher from heroes_information"
+hero <- dbGetQuery(mydb, Query)
+head(hero)
+```
+
+```{r}
+#Ejercicio 3
+#Select Count(*)  from table    Select count(field) from table    Select count(1) from table
+#Select count(distinct field)
+Query<- "Select Count(distinct Publisher) from heroes_information"
+hero <- dbGetQuery(mydb, Query)
+head(hero)
+```
+
+```{r}
+#Ejercicio 4 y 5
+#Select field from table where field = 2;
+# <> not equal    in ('v','a','b')
+Query1<- "Select * 
+        from heroes_information 
+        where Height > 200"
+hero1 <- dbGetQuery(mydb, Query1)
+head(hero1)
+Query2<- "Select * 
+        from heroes_information 
+        where race = 'Human'"
+hero2 <- dbGetQuery(mydb, Query2)
+head(hero2)
+```
+
+```{r}
+#Ejercicio 6 y 7
+#Select field from table where field1 = 2  and field2= 3;
+#and es varias condiciones en muchas columnas, in es un or en una columna
+Query_1<- "Select * 
+        from heroes_information 
+        where Race = 'Human'
+        And Height > 200"
+Query_2<- "Select Count(name)
+        from heroes_information 
+        where Weight > 100
+        And Weight < 200"
+hero1 <- dbGetQuery(mydb, Query_1)
+head(hero1)
+hero2 <- dbGetQuery(mydb, Query_2)
+head(hero2)
+```
+
+```{r}
+#Ejercicio 8
+#Where, and, or
+Query<- "Select Count(name)
+        from heroes_information 
+        where (`Eye color` = 'blue' or `Eye color` = 'red')"
+hero <- dbGetQuery(mydb, Query)
+head(hero)
+```
+
+```{r}
+#Ejercicio 9
+#Between
+Query<- "Select Count(name)
+        from heroes_information 
+        where weight
+        between 100 and 200"
+hero <- dbGetQuery(mydb, Query)
+head(hero)
+```
+
+```{r}
+#Ejercicio 10 
+#Select *   from table  Order by field1 desc, fiedl 2
+Query1<- "Select name, weight, height
+        from heroes_information 
+        where weight>200
+        and height >100
+        order by height desc"
+hero1 <- dbGetQuery(mydb, Query1)
+head(hero1)
+Query2<- "Select name, race
+        from heroes_information 
+        order by name, race"
+hero2 <- dbGetQuery(mydb, Query2)
+head(hero2)
+```
+```{r, cache = TRUE, echo=FALSE}
+require(RMySQL)
+connection_name <- "datawrangling.co4pgsadnasr.us-east-2.rds.amazonaws.com"
+db_name <- "dataWrangling"
+user <- "dstrack"
+password <- "datawrangling2019"
+drv = dbDriver("MySQL")
+mydb = dbConnect(drv,host=connection_name,dbname=db_name,user=user,pass=password)
+```
+
+```{r}
+#Ejercicio 11
+#Group by
+Query<- "Select Publisher, Gender, Count(name)
+        from heroes_information 
+        where Gender = 'Female'
+        group by Publisher
+        order by count(name) desc"
+hero <- dbGetQuery(mydb, Query)
+head(hero)
+```
+
+```{r}
+#Ejercicio 12
+#Having (se aplica al resultado despues de hacer un where)
+Query<- "Select Publisher, alignment,race, Count(name)
+        from heroes_information 
+        where alignment = 'good'
+        having count(name)>30"
+hero <- dbGetQuery(mydb, Query)
+head(hero)
+```
+
