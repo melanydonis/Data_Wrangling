@@ -7,7 +7,7 @@ Melany 20170474
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ───────────────
+    ## ── Attaching packages ──────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
@@ -20,7 +20,7 @@ library(tidyverse)
 
     ## Warning: package 'stringr' was built under R version 3.5.2
 
-    ## ── Conflicts ────────────────────────
+    ## ── Conflicts ─────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -624,3 +624,229 @@ ggplot(p, aes(fill=PILOTO, y=cantidad, x=viajes)) +
 ``` r
 #Tomando los viajes incompletos como un factor para determinar el piloto más eficiente, según el pie chart, el mejor piloto es Luis Jaime porque tiene el porcentaje más bajo de viajes faltantes respecto al total de sus viajes. Pero si tomamos en cuenta el número de viajes que hace y la cantidad que transporta, el mejor es Fernando, esto significa que a él se le da la confianza de tener más viajes con más producto. En este caso, el que menos viajes hace pero entrega más productos es Ismael, pero como se mencionó anteriormente, es extraño que él tenga el tenga porcentaje de faltantes más alto, por lo que se debería de analizar esta situación.
 ```
+
+``` r
+players_score <- read_csv('/Users/melany/Desktop/Data Wrangling/data/football-world-cup-2018-dataset/Players_Score.csv')
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   Rank = col_double(),
+    ##   player = col_character(),
+    ##   club = col_character(),
+    ##   age = col_double(),
+    ##   Apps = col_character(),
+    ##   Mins = col_double(),
+    ##   Goals = col_character(),
+    ##   Assists = col_character(),
+    ##   Yel = col_character(),
+    ##   Red = col_character(),
+    ##   SpG = col_character(),
+    ##   PS = col_double(),
+    ##   AerialsWon = col_character(),
+    ##   MotM = col_character(),
+    ##   Rating = col_double()
+    ## )
+
+``` r
+head(players_score)
+```
+
+    ## # A tibble: 6 x 15
+    ##    Rank player club    age Apps   Mins Goals Assists Yel   Red   SpG  
+    ##   <dbl> <chr>  <chr> <dbl> <chr> <dbl> <chr> <chr>   <chr> <chr> <chr>
+    ## 1     1 Hakim… Ajax     25 34     3043 9     15      4     -     4.9  
+    ## 2     2 Alire… AZ A…    24 33     2840 21    12      3     -     4.3  
+    ## 3     3 Hirvi… PSV …    22 29     2350 17    8       4     2     3.4  
+    ## 4     4 David… Ajax     21 28(4)  2534 14    11      3     -     2.1  
+    ## 5     5 Steve… Feye…    26 31     2597 18    12      5     1     2.9  
+    ## 6     6 Luuk … PSV …    27 22(6)  2078 12    5       1     -     3.4  
+    ## # … with 4 more variables: PS <dbl>, AerialsWon <chr>, MotM <chr>,
+    ## #   Rating <dbl>
+
+``` r
+players_score$cambio<-str_extract_all(players_score$Apps, "\\([^)]*\\)","")
+players_score$cambio<-str_extract_all(players_score$cambio,"[0-9]+")
+players_score$Apps<-str_replace_all(players_score$Apps, "\\([^)]*\\)","")
+
+#volver todas las variables numericas a formato numerico
+numbers <- c("age", "Apps", "cambio", "Goals", "Assists", "Yel", "Red", "SpG", "PS", "AerialsWon", "MotM", "Rating")
+players_score[numbers] <- lapply(players_score[numbers], as.numeric)
+```
+
+    ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
+    ## coercion
+
+    ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
+    ## coercion
+
+    ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
+    ## coercion
+
+    ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
+    ## coercion
+
+    ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
+    ## coercion
+
+    ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
+    ## coercion
+
+    ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
+    ## coercion
+
+``` r
+head(players_score)
+```
+
+    ## # A tibble: 6 x 16
+    ##    Rank player club    age  Apps  Mins Goals Assists   Yel   Red   SpG
+    ##   <dbl> <chr>  <chr> <dbl> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl>
+    ## 1     1 Hakim… Ajax     25    34  3043     9      15     4    NA   4.9
+    ## 2     2 Alire… AZ A…    24    33  2840    21      12     3    NA   4.3
+    ## 3     3 Hirvi… PSV …    22    29  2350    17       8     4     2   3.4
+    ## 4     4 David… Ajax     21    28  2534    14      11     3    NA   2.1
+    ## 5     5 Steve… Feye…    26    31  2597    18      12     5     1   2.9
+    ## 6     6 Luuk … PSV …    27    22  2078    12       5     1    NA   3.4
+    ## # … with 5 more variables: PS <dbl>, AerialsWon <dbl>, MotM <dbl>,
+    ## #   Rating <dbl>, cambio <dbl>
+
+``` r
+#1. Quien es el jugador con el mejor porcentaje de pase y de cual club es
+# Thiago Silva del club Paris Saint Germain
+players_score %>% 
+  select(player,club,PS ) %>% 
+  arrange(desc(PS)) %>% 
+  distinct() 
+```
+
+    ## # A tibble: 5,585 x 3
+    ##    player           club                   PS
+    ##    <chr>            <chr>               <dbl>
+    ##  1 Thiago Silva     Paris Saint Germain  96.1
+    ##  2 Dante            Nice                 96  
+    ##  3 Nampalys Mendy   Nice                 95.9
+    ##  4 Arthur           Gremio               95.8
+    ##  5 Omer Toprak      Borussia Dortmund    95.7
+    ##  6 John Stones      Manchester City      95.5
+    ##  7 Vincent Koziello Nice                 95.4
+    ##  8 Esteban Pavez    Atletico PR          95.4
+    ##  9 Presnel Kimpembe Paris Saint Germain  95.3
+    ## 10 Thiago Silva     Paris Saint Germain  94.9
+    ## # … with 5,575 more rows
+
+``` r
+#2. Quien es el jugador que mas veces ha sido Man of Match y su indice de goles por minuto
+# Lionel Messi y tiene un porcentjae de 0.0113 goles por minuto
+players_score %>% 
+  select(player,MotM,Goals,Mins ) %>% 
+  mutate(Goalspermin = Goals/Mins) %>% 
+  arrange(desc(MotM)) %>% 
+  distinct()
+```
+
+    ## # A tibble: 5,584 x 5
+    ##    player               MotM Goals  Mins Goalspermin
+    ##    <chr>               <dbl> <dbl> <dbl>       <dbl>
+    ##  1 Lionel Messi           22    34  2997    0.0113  
+    ##  2 Alireza Jahanbakhsh    14    21  2840    0.00739 
+    ##  3 Adama Traore           14     5  2427    0.00206 
+    ##  4 Florian Thauvin        13    22  2966    0.00742 
+    ##  5 Neymar                 12    19  1788    0.0106  
+    ##  6 Nabil Fekir            12    18  2481    0.00726 
+    ##  7 Iago Aspas             11    22  2938    0.00749 
+    ##  8 Jonas                  11    34  2473    0.0137  
+    ##  9 Curtis Davies          10     1  4313    0.000232
+    ## 10 Hakim Ziyech            9     9  3043    0.00296 
+    ## # … with 5,574 more rows
+
+``` r
+#3. Quien es el jugador mas joven con mas goles anotados a traves de todo el set de datos
+# De los jugadores de 17 años que son los más jovenes, Rodrygo es el que más goles ha anotado. 
+players_score %>% 
+  select(player,age,Goals ) %>% 
+  arrange(age) %>% 
+  distinct()
+```
+
+    ## # A tibble: 5,399 x 3
+    ##    player             age Goals
+    ##    <chr>            <dbl> <dbl>
+    ##  1 Kik Pierie          17    NA
+    ##  2 Rodrygo             17     5
+    ##  3 Vinicius Junior     17     4
+    ##  4 Alphonso Davies     17     1
+    ##  5 Matthijs de Ligt    18     3
+    ##  6 Deroy Duarte        18     3
+    ##  7 Ryan Sessegnon      18    16
+    ##  8 Joe Willock         18    NA
+    ##  9 Boubacar Kamara     18    NA
+    ## 10 Reiss Nelson        18    NA
+    ## # … with 5,389 more rows
+
+``` r
+#4. Quien es el jugador que entra de cambio mas efectivo al momento de anotar goles
+# Unijugador que entra de cambio es el que menos tiempo juega. Andreas Cornelius es el que entra de cambio y anota 2 goles.
+players_score %>% 
+  select(player,Mins,Goals ) %>% 
+  arrange((Mins)) %>% 
+  distinct()
+```
+
+    ## # A tibble: 5,584 x 3
+    ##    player             Mins Goals
+    ##    <chr>             <dbl> <dbl>
+    ##  1 Sun Jungang          15    NA
+    ##  2 Zhao Mingyu          20    NA
+    ##  3 Andreas Cornelius    25     2
+    ##  4 Uros Racic           25    NA
+    ##  5 Ivan Saponjic        26    NA
+    ##  6 Dentinho             34    NA
+    ##  7 Yang Wanshun         35    NA
+    ##  8 Dani Quintana        39    NA
+    ##  9 Viktor Kovalenko     43    NA
+    ## 10 Matheus Galdezani    48    NA
+    ## # … with 5,574 more rows
+
+``` r
+#5. Quien es el jugador que es mas sucio
+# De los jugadores con 2 tarjetas rojas, los más shucos son Hassan Yebda y Dusko Tosic porque tienen más tarjetas amarillas
+players_score %>% 
+  select(player,Yel,Red ) %>% 
+  filter(Red >2) %>% 
+  arrange(desc(Yel)) %>% 
+  distinct()
+```
+
+    ## # A tibble: 5 x 3
+    ##   player            Yel   Red
+    ##   <chr>           <dbl> <dbl>
+    ## 1 Hassan Yebda        7     3
+    ## 2 Dusko Tosic         7     3
+    ## 3 Marcao              5     3
+    ## 4 Gaetano Berardi     3     3
+    ## 5 Prince              2     3
+
+``` r
+#6. Cual es el mejor equipo de todos
+# Barcelona porque tienen más goles anotados, supongo que es el que más gana
+players_score %>% 
+  select(club,Goals) %>% 
+  arrange(desc(Goals)) %>% 
+  distinct()
+```
+
+    ## # A tibble: 1,985 x 2
+    ##    club                Goals
+    ##    <chr>               <dbl>
+    ##  1 Barcelona              34
+    ##  2 Benfica                34
+    ##  3 Liverpool              32
+    ##  4 Tottenham              30
+    ##  5 Bayern Munich          29
+    ##  6 Galatasaray            29
+    ##  7 Lazio                  29
+    ##  8 Inter                  29
+    ##  9 Paris Saint Germain    28
+    ## 10 Sporting CP            27
+    ## # … with 1,975 more rows

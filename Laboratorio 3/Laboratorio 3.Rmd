@@ -196,3 +196,72 @@ ggplot(p, aes(fill=PILOTO, y=cantidad, x=viajes)) +
     geom_bar(position="dodge", stat="identity")
 #Tomando los viajes incompletos como un factor para determinar el piloto más eficiente, según el pie chart, el mejor piloto es Luis Jaime porque tiene el porcentaje más bajo de viajes faltantes respecto al total de sus viajes. Pero si tomamos en cuenta el número de viajes que hace y la cantidad que transporta, el mejor es Fernando, esto significa que a él se le da la confianza de tener más viajes con más producto. En este caso, el que menos viajes hace pero entrega más productos es Ismael, pero como se mencionó anteriormente, es extraño que él tenga el tenga porcentaje de faltantes más alto, por lo que se debería de analizar esta situación.
 ```
+
+```{r}
+players_score <- read_csv('/Users/melany/Desktop/Data Wrangling/data/football-world-cup-2018-dataset/Players_Score.csv')
+head(players_score)
+
+players_score$cambio<-str_extract_all(players_score$Apps, "\\([^)]*\\)","")
+players_score$cambio<-str_extract_all(players_score$cambio,"[0-9]+")
+players_score$Apps<-str_replace_all(players_score$Apps, "\\([^)]*\\)","")
+
+#volver todas las variables numericas a formato numerico
+numbers <- c("age", "Apps", "cambio", "Goals", "Assists", "Yel", "Red", "SpG", "PS", "AerialsWon", "MotM", "Rating")
+players_score[numbers] <- lapply(players_score[numbers], as.numeric)
+head(players_score)
+
+#1. Quien es el jugador con el mejor porcentaje de pase y de cual club es
+# Thiago Silva del club Paris Saint Germain
+players_score %>% 
+  select(player,club,PS ) %>% 
+  arrange(desc(PS)) %>% 
+  distinct() 
+```
+
+```{r}
+#2. Quien es el jugador que mas veces ha sido Man of Match y su indice de goles por minuto
+# Lionel Messi y tiene un porcentjae de 0.0113 goles por minuto
+players_score %>% 
+  select(player,MotM,Goals,Mins ) %>% 
+  mutate(Goalspermin = Goals/Mins) %>% 
+  arrange(desc(MotM)) %>% 
+  distinct()
+```
+
+```{r}
+#3. Quien es el jugador mas joven con mas goles anotados a traves de todo el set de datos
+# De los jugadores de 17 años que son los más jovenes, Rodrygo es el que más goles ha anotado. 
+players_score %>% 
+  select(player,age,Goals ) %>% 
+  arrange(age) %>% 
+  distinct()
+```
+
+```{r}
+#4. Quien es el jugador que entra de cambio mas efectivo al momento de anotar goles
+# Unijugador que entra de cambio es el que menos tiempo juega. Andreas Cornelius es el que entra de cambio y anota 2 goles.
+players_score %>% 
+  select(player,Mins,Goals ) %>% 
+  arrange((Mins)) %>% 
+  distinct()
+```
+
+```{r}
+#5. Quien es el jugador que es mas sucio
+# De los jugadores con 2 tarjetas rojas, los más shucos son Hassan Yebda y Dusko Tosic porque tienen más tarjetas amarillas
+players_score %>% 
+  select(player,Yel,Red ) %>% 
+  filter(Red >2) %>% 
+  arrange(desc(Yel)) %>% 
+  distinct()
+```
+
+```{r}
+#6. Cual es el mejor equipo de todos
+# Barcelona porque tienen más goles anotados, supongo que es el que más gana
+players_score %>% 
+  select(club,Goals) %>% 
+  arrange(desc(Goals)) %>% 
+  distinct()
+```
+
