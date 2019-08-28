@@ -1,0 +1,59 @@
+---
+title: "Lab 4"
+author: "Melany 20170474"
+date: "8/28/2019"
+output: rmarkdown::github_document
+---
+
+```{r, cache=TRUE}
+library(readr)
+library(tidyr)
+library(reshape2)
+library(dplyr)
+library(stringr)
+df <- data.frame(row = LETTERS[1:3], a = 1:3, b = 4:6, c = 7:9)
+head(df)
+```
+
+```{r}
+#Melt (id como default es la columna con caracteres)
+dfm <- melt(df, id = "row")
+head(dfm)
+```
+
+```{r}
+#gather (a:c son las que toma como variable)
+dfg <- gather(df, key="variable", value = "value", a:c)
+head(dfg)
+
+colnames(dfg) <- c("row", "letras", "valores")
+```
+
+```{r}
+load("/Users/melany/Desktop/Data Wrangling/Github/Lab 4/wide_religion.Rda")
+religion <- melt(wide_religion, id = "religion")
+colnames(religion) <- c("religion","income","cantidad")
+head(religion)
+```
+
+```{r, cache=TRUE}
+raw <- read_csv('/Users/melany/Desktop/Data Wrangling/data/Archive/Raw.csv')[,2:18]
+raw$mu <- NULL
+head(raw)
+```
+
+```{r}
+raw <- melt(raw, id = c("country","year"))
+```
+
+```{r}
+new<- separate(raw, variable, c("Gender", "Age"), sep = 1)
+```
+
+```{r}
+library(plyr)
+new$Age <- revalue(new$Age, c("014" = "0-14", "1524" = "15-24", "2534" = "25-34", "3544" = "35-34", "4554" = "45-54", "5564" = "55-64", "65" = "65+"))
+colnames(new) <- c("country","year","gender","age","cantidad")
+head(new)
+```
+
