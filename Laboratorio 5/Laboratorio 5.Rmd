@@ -1,0 +1,81 @@
+---
+title: "Laboratorio 5"
+author: "Melany 20170474"
+date: "9/4/2019"
+output: rmarkdown::github_document
+---
+
+```{r}
+require(lubridate)
+
+ultimo_eclipse <- "21-08-2017 18:26:40"
+ultimo_eclipse <- dmy_hms(ultimo_eclipse)
+SynodicMonth <- days(29) + hours(12) + minutes(44) + seconds(3)
+saros <- 223*SynodicMonth
+siguiente_eclipse <- ultimo_eclipse + saros
+siguiente_eclipse
+```
+
+```{r}
+library(readr)
+library(dplyr)
+require(plotly)
+
+datos <- read_csv('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 5/Lab5/data.csv')
+head(datos)
+
+datos$`Fecha Creación` <- dmy(datos$`Fecha Creación`)
+datos$Mes <- month(datos$`Fecha Creación`, label = T)
+datos$Dia <- wday(datos$`Fecha Creación`, label = T)
+
+datos$Inicio <- paste(datos$`Fecha Creación`,datos$`Hora Creación`)
+datos$Inicio <- ymd_hms(datos$Inicio)
+datos$Final <- paste(datos$`Fecha Final`,datos$`Hora Final`)
+datos$Final <- dmy_hms(datos$Final)
+```
+
+```{r}
+datos1 <- datos %>% select(Cod, Call, Mes) %>% filter(Call == "1") %>% group_by(Cod, Mes) %>% count(Call, sort = TRUE)
+datos1
+datos1$Mes <- factor(datos1$Mes, levels = unique(datos1$Mes)[order(datos1$n, decreasing = TRUE)])
+datos1 %>% plot_ly(x= ~Mes, y = ~n, type= "bar")
+#El mes con mas llamdas es marzo con el codigo de actualizacion de informacion
+```
+
+```{r}
+datos2 <- datos %>% select(Dia) %>% group_by(Dia) %>% summarise(n = n()) %>% arrange(desc(n))
+datos2
+datos2$Dia <- factor(datos2$Dia, levels = unique(datos2$Dia)[order(datos2$n, decreasing = TRUE)])
+datos2 %>% plot_ly(x= ~Dia, y = ~n, type= "bar")
+#El dia mas ocupado es el domingo
+```
+
+```{r}
+datos3 <- datos %>% select(Mes) %>% group_by(Mes) %>% summarise(n = n()) %>% arrange(desc(n))
+datos3
+datos3$Mes <- factor(datos3$Mes, levels = unique(datos3$Mes)[order(datos3$n, decreasing = TRUE)])
+datos3 %>% plot_ly(x= ~Mes, y = ~n, type= "bar")
+#El mes mas ocupado es octubre
+```
+
+```{r}
+datos4 <- datos %>% select(`Fecha Creación`) %>% group_by(`Fecha Creación`) %>% summarise(n = n()) 
+datos4
+datos4 %>% plot_ly(x= ~`Fecha Creación`, y = ~n, type = 'scatter', mode = 'lines')
+#No existe una temporalidad porque no existe una tendencia de lamadas en el tiempo.
+```
+
+```{r}
+datos$duracion <- difftime(datos$Final, datos$Inicio, units = "mins")
+datos5 <- data.frame(datos %>% select(duracion) %>% filter(duracion >0))
+promedio <- mean(datos5$duracion)
+promedio
+#La llamada promedio dura 15 minutos tomando en cuenta la duracion de las llamadas positivas.
+```
+
+```{r}
+datos6 <- data.frame(datos %>% select(duracion) %>% filter(duracion >0) %>% group_by(duracion) %>%  summarise(CantidadLlamadas = n()))
+datos6
+
+datos6 %>% plot_ly(x= ~duracion, y = ~CantidadLlamadas, type= "bar")
+```
