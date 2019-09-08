@@ -2,7 +2,7 @@
 title: "Laboratorio 5"
 author: "Melany 20170474"
 date: "9/4/2019"
-output: rmarkdown::github_document
+output:  rmarkdown::github_document
 ---
 
 ```{r}
@@ -21,7 +21,7 @@ library(readr)
 library(dplyr)
 require(plotly)
 
-datos <- read_csv('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 5/Lab5/data.csv')
+datos <- read_csv('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 5/data.csv')
 head(datos)
 
 datos$`Fecha Creación` <- dmy(datos$`Fecha Creación`)
