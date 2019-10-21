@@ -7,7 +7,7 @@ Melany 20170474
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ──────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ─── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
@@ -20,7 +20,7 @@ library(tidyverse)
 
     ## Warning: package 'stringr' was built under R version 3.5.2
 
-    ## ── Conflicts ─────────── tidyverse_conflicts() ──
+    ## ── Conflicts ────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -576,7 +576,7 @@ theme(axis.text.x = element_text(angle=90, vjust=0.6)) +
 labs(title = "Pareto Chart, 80-20 clientes", x = 'Clientes', y ='Q')
 ```
 
-![](Laboratorio_3_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](Laboratorio_3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 #Tomando en cuenta solo los clientes cuyos pedidos se han completado, los mejores clientes para la empresa son la taqueria el chinito, la universidad y la abarroteria ebenezer, pues son los clientes que más ha comprado en términos de dinero y que sobresalen. Se analizó la cantidad de quetzales porque si se analiza el número de viajes puede que el cliente haga más viajes de los que debería y no pague lo suficiente para cubrir el costo del viaje. El acumulado de todos los clientes es de Q366,821.25 anuales.
@@ -590,7 +590,7 @@ ggplot(d, aes(fill=UNIDAD, y=cantidad, x=viajes)) +
     geom_bar(position="dodge", stat="identity")
 ```
 
-![](Laboratorio_3_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](Laboratorio_3_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 #La gráfica demuestra que el transporte más efectivo es el camión grande porque es la unidad que transporta más productos y hace más viajes.
@@ -610,7 +610,7 @@ pie(all$Porcentaje, labels = pielabels, col=rainbow(length(all$PILOTO)),
    main="Porcentaje de viajes faltantes por piloto")
 ```
 
-![](Laboratorio_3_files/figure-markdown_github/unnamed-chunk-9-2.png)
+![](Laboratorio_3_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
 
 ``` r
 #Número de viajes y cantidad total de productos por piloto
@@ -619,7 +619,7 @@ ggplot(p, aes(fill=PILOTO, y=cantidad, x=viajes)) +
     geom_bar(position="dodge", stat="identity")
 ```
 
-![](Laboratorio_3_files/figure-markdown_github/unnamed-chunk-9-3.png)
+![](Laboratorio_3_files/figure-gfm/unnamed-chunk-9-3.png)<!-- -->
 
 ``` r
 #Tomando los viajes incompletos como un factor para determinar el piloto más eficiente, según el pie chart, el mejor piloto es Luis Jaime porque tiene el porcentaje más bajo de viajes faltantes respecto al total de sus viajes. Pero si tomamos en cuenta el número de viajes que hace y la cantidad que transporta, el mejor es Fernando, esto significa que a él se le da la confianza de tener más viajes con más producto. En este caso, el que menos viajes hace pero entrega más productos es Ismael, pero como se mencionó anteriormente, es extraño que él tenga el tenga porcentaje de faltantes más alto, por lo que se debería de analizar esta situación.
@@ -676,22 +676,22 @@ players_score[numbers] <- lapply(players_score[numbers], as.numeric)
 
     ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
     ## coercion
-
+    
     ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
     ## coercion
-
+    
     ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
     ## coercion
-
+    
     ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
     ## coercion
-
+    
     ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
     ## coercion
-
+    
     ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
     ## coercion
-
+    
     ## Warning in lapply(players_score[numbers], as.numeric): NAs introduced by
     ## coercion
 

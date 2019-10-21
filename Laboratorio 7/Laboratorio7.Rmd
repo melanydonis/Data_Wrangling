@@ -1,0 +1,200 @@
+---
+title: "Laboratorio 7"
+author: "Melany 20170474"
+date: "9/16/2019"
+output: rmarkdown::github_document
+---
+
+```{r, cache=TRUE}
+library(readr)
+library(dplyr)
+require(plotly)
+require(stringr)
+require(tidyr)
+library(lubridate)
+
+datos <- read_csv('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 7/c1.csv')[,1:22]
+head(datos)
+```
+
+```{r, cache=TRUE}
+#Quite las Q y reemplace con un 0 las observaciones sin datos.
+datos$Camion_5 <- as.numeric(str_replace(str_replace(datos$Camion_5,"Q", ""),"Q-", "0"))
+datos$Pickup <- as.numeric(str_replace(str_replace(datos$Pickup,"Q", ""),"Q-", "0"))
+datos$Moto <- as.numeric(str_replace(str_replace(datos$Moto,"Q", ""),"Q-", "0"))
+datos$factura <- as.numeric(str_replace(datos$factura,"Q", ""))
+datos$directoCamion_5 <- as.numeric(str_replace(str_replace(datos$directoCamion_5,"Q", ""),"Q-", "0"))
+datos$directoPickup <- as.numeric(str_replace(str_replace(datos$directoPickup,"Q", ""),"Q-", "0"))
+datos$directoMoto <- as.numeric(str_replace(str_replace(datos$directoMoto,"Q", ""),"Q-", "0"))
+datos$fijoCamion_5 <- as.numeric(str_replace(str_replace(datos$fijoCamion_5,"Q", ""),"Q-", "0"))
+datos$fijoPickup <- as.numeric(str_replace(str_replace(datos$fijoPickup,"Q", ""),"Q-", "0"))
+datos$fijoMoto <- as.numeric(str_replace(str_replace(datos$fijoMoto,"Q", ""),"Q-", "0"))
+str(datos)
+View(datos)
+```
+
+```{r, cache=TRUE}
+#Hice tidy la data y omiti los valores con 0 ya que estos no son importantes.
+datos <- gather(datos, key="Vehiculo", value = "CostoVariable", directoCamion_5, directoPickup, directoMoto)
+datos <- gather(datos, key="Vehiculo", value = "CostoFijo", fijoCamion_5, fijoPickup, fijoMoto)
+datos <- gather(datos, key="Vehiculo", value = "CostoTotal", Camion_5, Pickup, Moto)
+datos <- gather(datos, key="Minutos", value = "Tiempo", `5-30`, `30-45`, `45-75`, `75-120`,`120+`)
+datos <- na.omit(datos)
+head(datos)
+```
+
+```{r, cache=TRUE}
+#Estado de resultados breve del 2017.
+CostoVariable <- sum(datos$CostoVariable)
+CostoFijo <- sum(datos$CostoFijo)
+CostoTotal <- sum(datos$CostoTotal)
+Ingreso <- sum(datos$factura)
+MargenBruto <- Ingreso - CostoTotal
+EstadoResultados <- data.frame(EstadoResultados = c("Ingreso", "CostoVariable", "CostoFijo", "CostoTotal", "MargenBruto"), Q= format(c(Ingreso, CostoVariable, CostoFijo, CostoTotal, MargenBruto),big.mark = ","))
+EstadoResultados
+#Las ganancias del año 2017 son mayores a 8 millones.
+```
+
+```{r, cache=TRUE}
+#¿Cómo quedó el tarifario en el 2017 por unidad?
+#Fechas con lubridate.
+data <- datos %>% select(Fecha, factura, CostoTotal, Cod, ID)
+data$Fecha <- dmy(data$Fecha)
+data$mes <- month(data$Fecha)
+
+# Tarifa por poste de cada uno de los servicios.
+d1g<- data %>% select(Fecha, ID, factura, Cod) %>% group_by(Cod) %>% summarise(Postes = n(), Tarifa = mean(factura)) %>% arrange(desc(Tarifa)) %>% distinct()
+d1g
+d1g$Cod <- factor(d1g$Cod, levels = unique(d1g$Cod)[order(d1g$Tarifa, decreasing = TRUE)])
+d1g %>% plot_ly(x= ~Cod, y = ~Tarifa, type= "bar")
+Min <- min(datos$factura)
+Max <- max(datos$factura)
+s <- data.frame(Min,Max)
+
+d1c<- data %>% select(Fecha, ID, CostoTotal, Cod) %>% group_by(Cod) %>% summarise(Postes = n(), Costo = mean(CostoTotal)) %>% arrange(desc(Costo)) %>% distinct()
+d1c
+d1c$Cod <- factor(d1c$Cod, levels = unique(d1c$Cod)[order(d1c$Costo, decreasing = TRUE)])
+d1c %>% plot_ly(x= ~Cod, y = ~Costo, type= "bar")
+
+d <- merge(d1g,d1c, "Cod")
+d$ganancia <- d$Tarifa-d$Costo
+d %>% select(Cod,Tarifa, Costo,ganancia) %>% arrange(desc(ganancia))
+mean(d$ganancia)
+
+#Las tarifas por cada poste es esta entre Q100 y Q200 y los costos entre Q100 y Q140, lo que significa que las ganancias son en promedio de Q35 por poste. El servicio que tiene un ingreso más es el cambio de puentes. Sin embargo, es el servicio que menos se hace, lo que podria deberse a su precio, y ademas, es el servicio más costos para la empresa. El mejor servicio podría ser el de revisión, ya que, aunque su tarifa no es tan alta, es el que más veces se hace, el que más ingresos genera y el que menos costo es. 
+```
+
+```{r, cache=TRUE}
+#Las tarifas actuales ¿son aceptables por el cliente? ¿Estamos en números rojos?
+#Numero de postes
+datos  %>% summarise(n_distinct(ID))
+
+#Porcentaje que representan los servicios sobre la cantidad total de observaciones y la ganancia que representa cada uno.
+d2<- datos %>% select(ID, factura, Cod, CostoTotal) %>% group_by(Cod) %>% summarise(Postes = n(), Ganancia =  (sum(factura) - sum(CostoTotal)), Porcentaje = paste0(round(100 * Postes/263725, 0), "%")) %>% arrange(desc(Ganancia)) %>% distinct()
+d2
+Porcentajes = d2$Postes/263725
+plot_ly(d2, labels = ~Cod, values = ~Porcentajes, type = 'pie')
+
+#Promedio de tarifa por poste por mes
+data %>% select(Fecha, factura, CostoTotal, mes) %>% group_by(mes) %>% summarise(Ingresos = sum(factura)) %>% distinct() %>% plot_ly(x= ~mes, y = ~Ingresos, type= "scatter", mode = "line")
+
+#Considerando que la cantidad de postes en los que son trabajan son más de 74000 y que servicios como revisión y verificación son los que más se hacen, se podría decir que las tarifas son las adecuadas, ya que solo son de mantenimiento y no de reparaciones por alguna irresponsabilidad de su parte, lo que significa que las personas si estan dispuestas a pagar esos precios por su buen servicio. El mes en que el que los ingresos son más altos es en Noviembre, durante el año los ingresos se mantienen relativamente estables, solamente en febrero baja drasticamente, lo que podria deberse a que el clima en ese mes no genera mayores problemas o por ser un mes con menos días a los demás.  
+```
+
+```{r, cache=TRUE}
+#¿Cuándo podríamos perderle a un mantenimiento y/o reparación?
+#Mantenimiento
+dMAN <- datos %>% filter(Cod=="VERIFICACION_INDICADORES" | Cod=="REVISION"| Cod== "REVISION_TRANSFORMADOR"| Cod== "CAMBIO_FUSIBLE"| Cod=="VERIFICACION_MEDIDORES"| Cod== "VISITA")
+
+h <- dMAN %>% select(CostoFijo, CostoTotal, CostoVariable, Cod) %>% group_by(Cod) %>% summarise(Postes = n(), CostosFijos = mean(CostoFijo), CostosVariables = mean(CostoVariable)) %>% arrange(desc(CostosFijos)) %>% distinct()
+h
+
+m <- dMAN %>% select(Minutos, CostoTotal) %>% group_by(Minutos) %>% summarise(Postes = n(), Costo = mean(CostoTotal)) %>% distinct() %>% arrange(desc(Postes)) 
+m
+m$Minutos <- factor(m$Minutos, levels = unique(m$Minutos)[order(m$Costo, decreasing = TRUE)])
+m %>% plot_ly(x= ~Minutos, y = ~Costo, type= "bar")
+dMAN %>% select(Cod, Minutos, height) %>% group_by(Cod, Minutos, height) %>% count(Minutos) %>% distinct() %>% arrange(desc(n))
+
+#La mayoria de servicios tardan de 1 a 2 horas para realizarlos, más que todo en las revisiones, ya que es el servicios que más hace. Debido a que el tiempo más costo en promedio es el que dura más de 2 horas, se deberia de tener en consideracion el tiempo en el que se tardan en realizar el servicio, suponiendo que el tiempo depende de los costos variables, especialmente cuando hacen una revisión de transformador, ya que es el que tiene el costo promedio fijo más alto. Sino podrían perder dinero al hacer este servicio. 
+```
+
+```{r, cache=TRUE}
+dREP <- datos %>% filter(Cod== "CAMBIO_PUENTES" | Cod== "VISITA_POR_CORRECCION" | Cod == "CAMBIO_CORRECTIVO")
+
+h <- dREP %>% select(CostoFijo, CostoTotal, CostoVariable, Cod) %>% group_by(Cod) %>% summarise(Postes = n(), CostosFijos = mean(CostoFijo), CostosVariables = mean(CostoVariable)) %>% arrange(desc(CostosFijos)) %>% distinct()
+h
+
+r <- dREP %>% select(Minutos, CostoTotal) %>% group_by(Minutos) %>% summarise(Postes = n(), Costo = mean(CostoTotal)) %>% distinct() %>% arrange(desc(Costo)) 
+r
+r$Minutos <- factor(r$Minutos, levels = unique(r$Minutos)[order(r$Costo, decreasing = TRUE)])
+r %>% plot_ly(x= ~Minutos, y = ~Costo, type= "bar")
+dREP %>% select(Cod, Minutos, height) %>% group_by(Cod, Minutos, height) %>% count(Minutos) %>% distinct() %>% arrange(desc(n))
+
+unique(datos$height)
+h <- dMAN %>% select(height, CostoTotal, factura, Cod) %>% group_by(height) %>% summarise(Postes = n(), Costo = mean(CostoTotal)) %>% arrange(desc(Costo)) %>% distinct()
+h
+h$height <- factor(h$height, levels = unique(h$height)[order(h$Costo, decreasing = TRUE)])
+h %>% plot_ly(x= ~height, y = ~Costo, type= "bar")
+
+#El servicio con mayor costo fijo y variable en promedio es el cambio de puentes, en estos servicios tambien es mas costoso si se tardan más de 2 horas, por lo que se debe tener cuidado en el tiempo, ya que la diferencia de que se tarden 45 minutos o un poco más de una hora no es tan grande como que se tarden más de 2 horas. Sin embargo, es el cambio correctivo es el más frecuente y el que se tarda más de 1 hora para hacerlo. Además los postes con altura 8 son los más frecuentes y los que tienen un costo promedio más alto. Sin embargo, la diferencia de los costos de las alturas de los postes no son significativamente grandes, pero si se podría tener cuidado en este tipo de servicios que ya probablemente sean reparaciones que se pudieron evitar o que en realidad no son tan frecuentes como los de mantenimiento.
+```
+
+```{r, cache=TRUE}
+#¿Debemos abrir más centros de distribución?
+d4 <- datos %>% select(origen, factura) %>% group_by(origen) %>% summarise(n= n()) %>% arrange(desc(n)) %>% distinct()
+d4
+prom <- mean(d4$n)
+d4$origen <- factor(d4$origen, levels = unique(d4$origen)[order(d4$n, decreasing = TRUE)])
+d4 %>% plot_ly(x= ~origen, y = ~n, type= "bar") %>% add_lines(y = prom, name = "Promedio", mode = 'lines')
+
+datos %>% select(origen, factura, Vehiculo) %>% group_by(origen,Vehiculo) %>% summarise(ingreso = sum(factura)) %>% arrange(desc(ingreso))
+
+#Dos de centros de distribución realizan más de 100,000 servicios y los otros dos solamente 26,000. Esto podría indicar que se podría abrir otro centro de distribución para disminuir la carga a los primeros centros, y llegar a un promedio de 65,000. Suponiendo que los ultimos dos no hacen tantos servicios por su ubicación. Además, las primera ubicaciones son las que generan más dinero haciendo los viajes en pickup y camión, porque lo más probable es que esos servicios sean más costos si se necesita un vehiculo más grande que una moto, por lo que esos vehiculos son los más rentables, sin dejar a un lado que las motos son necesarios para servicios más sencillos.
+```
+
+```{r, cache=TRUE}
+#¿Qué estrategias debo seguir?
+#Evitar realizar tantos viajes por cambios de puente, otros y visitas por corrección los cuales son los más costosos, en este año no se hicieron tantos viajes por lo mismo, lo que podria deberse a su éxito. Analizar la disminución de ingresos en febrero y tratar de arreglarlo, porque debe de haber una razón por la cual ese es el único mes con ingresos menores al promedio. Tener cuidado con el tiempo que se tarden en realizar los servicios, ya que si se tardan más de dos horas, los costos son aún más bajos, lo que disminuye su ganancia. Analizar si vale la pena abrir otro centro de distribución para que crezca la empresa, dependiendo de la ubicación de nuevas oportunidades.
+
+```
+
+```{r, cache=TRUE}
+#Entender visualmente: “80-20” de factura (puede variar el porcentaje) y cuáles postes requieren de más mantenimiento.
+library(qcc)
+good <- data.frame(datos %>% select(Cod, factura) %>% group_by(Cod) %>% summarise(Total = sum(factura)) %>% arrange(desc(Total)))
+Total <- good$Total
+names(Total) <- c("Revisión","VerificaciónMedidores","VerificaciónIndicadores","CambioCorrectivo","CambioFusible","VisitaCorrección","RevisiónTransformador", "Otro", "CambioPuentes", "Visita")
+pareto.chart(Total, ylab = "Frequency", ylab2 = "Cumulative Percentage", cumperc = seq(0, 100, by = 20))
+#El 20% de los servicios no representan el 80% de las ganancias, por lo que no se cumple el principio de Pareto.
+
+datos$ID <- as.character(datos$ID)
+pos <- datos %>% group_by(ID) %>% summarise(ingreso = sum(factura))%>% arrange(desc(ingreso)) %>% mutate(porcentaje = 100 * ingreso/sum(ingreso)) 
+l <- length(pos$ID)
+p20 <- (20/100)*l
+p30 <- (30/100)*l
+p40 <- (40/100)*l
+p50 <- (50/100)*l
+p60 <- (60/100)*l
+t20 <- paste0(round(sum(pos$porcentaje[1:p20])), "%")
+t30 <- paste0(round(sum(pos$porcentaje[1:p30])), "%")
+t40 <- paste0(round(sum(pos$porcentaje[1:p40])), "%")
+t50 <- paste0(round(sum(pos$porcentaje[1:p50])), "%")
+t60 <- paste0(round(sum(pos$porcentaje[1:p60])), "%")
+total <- data.frame(c("20%","30%","40%","50%","60%"),c(t20,t30,t40,t50,t60))
+#El 50% de los postes representa más del 80% de los ingresos
+
+datos %>% select(ID, factura, Cod)  %>% filter(Cod=="VERIFICACION_INDICADORES" | Cod=="REVISION"| Cod== "REVISION_TRANSFORMADOR"| Cod== "CAMBIO_FUSIBLE"| Cod=="VERIFICACION_MEDIDORES"| Cod== "VISITA") %>% group_by(ID) %>% summarise(Total = sum(factura)) %>% arrange(Total)
+#Los postes que más mantenimiento necesitan son los 848498 y 645518 porque hasta ahora son los que han generado menos ingresos por estos servicios.
+```
+
+```{r, cache=TRUE}
+#Entender visualmente: Recorridos más efectivos.
+recorridos <- datos %>% select(Vehiculo, CostoTotal, factura, Cod) %>% group_by(Vehiculo) %>% summarise(Postes = n(), Costo = mean(CostoTotal), Ingreso = mean(factura)) %>% arrange(desc(Ingreso)) %>% distinct()
+recorridos$Vehiculo <- factor(recorridos$Vehiculo, levels = unique(recorridos$Vehiculo)[order(recorridos$Ingreso, decreasing = TRUE)])
+recorridos %>% plot_ly(x= ~Vehiculo, y = ~Ingreso, type= "bar", name = "Ingreso") %>% add_trace(x= ~Vehiculo, y = ~Costo, type= "bar", name = "Costo")
+
+datos %>% select(Vehiculo, CostoTotal, factura, Cod) %>% group_by(Vehiculo) %>% summarise(Postes = n(), Porcentaje = Postes/263725) %>% arrange(desc(Postes)) %>% distinct() %>% plot_ly(labels= ~Vehiculo, values = ~Porcentaje, type= "pie")
+
+#Suponiendo que el recorrido lo hacen los vehiculos, el que más viajes hace el pickup con casi 3/4 de los viajes completos, lo que significa que es más efectivo usarlos para la mayoria de los servicios. Por otro lado, financieramente el vehiculo más efectivo es el camion porque genera más ingresos.
+```
+
