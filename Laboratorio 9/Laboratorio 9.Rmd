@@ -1,0 +1,25 @@
+---
+title: "Laboratorio 9"
+author: "Melany 20170474"
+date: "10/23/2019"
+output: html_document
+---
+```{r, cache = TRUE, echo=FALSE}
+library(twitteR)
+library(dplyr)
+library(readr)
+consumer_key <- "oId1gk2EJz2EmN0qltbccyO8v"
+consumer_secret <- "M6LEr7SzekoYWa8d5DYoDPVtU6x6KTWPDbVwqOCZ0I9MWhle6j"
+access_token <- "1041692355806453760-wIua8wUaDpBOtiW7XLgv7qRqsZgJhX"
+access_secret <- "CjAD7jOwlBsc6FiA9Zt7WEd1oz72T6sEVIEZ87QEPyVxh"
+setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+```
+
+```{r}
+tw <- twitteR::searchTwitter('#Warriors', n = 1e4, since = '2019-10-23', retryOnRateLimit = 1e3)
+df <- twitteR::twListToDF(tw)
+df %>% head() %>% View()
+
+write_csv(df,"tweets.csv")
+```
+
