@@ -1,0 +1,115 @@
+---
+title: "Laboratorio 10"
+author: "Melany 20170474"
+date: "11/2/2019"
+output: rmarkdown::github_document
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(plotly)
+library(DataExplorer)
+
+df_movies <- read_csv('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 10/movies.csv')
+df_ratings <- read_csv('/Users/melany/Desktop/Data Wrangling/Github/Laboratorio 10/ratings.csv')
+head(df_movies)
+head(df_ratings)
+```
+
+```{r}
+colnames(df_movies)[which(names(df_movies) == "id")] <- "movieId"
+ratings <- df_ratings %>% group_by(movieId) %>% summarise(rating_mean = mean(rating))
+df <- left_join(df_movies, ratings,  by = 'movieId')
+head(df)
+glimpse(df)
+```
+
+```{r}
+colSums(is.na(df))
+plot_missing(df)
+```
+
+```{r}
+library(stringr)
+df[is.na(df$release_year),]
+for (i in df$X1){
+  if (is.na(df$release_year[which(df$X1 == i)])){
+    df$release_year[which(df$X1 == i)] <- str_extract(string = df$release_date[which(df$X1 == i)], pattern = "^[0-9]{4}")
+  }
+}
+df[is.na(df$release_year),]
+
+for (i in df$X1){
+  if (is.na(df$title[which(df$X1 == i)])){
+    df$title[which(df$X1 == i)] <- df$original_title[which(df$X1 == i)]
+  }
+}
+```
+
+
+
+```{r}
+completeFun <- function(data, Col) {
+  complete <- complete.cases(data[, Col])
+  return(data[complete, ])
+}
+
+df<- completeFun(df, "rating_mean")
+df<- completeFun(df, "movieId")
+df<- completeFun(df, "original_language")
+```
+
+```{r}
+df$revenue <- replace(df$revenue, is.na(df$revenue), 0)
+df$budget <- replace(df$budget, is.na(df$budget), 0)
+```
+
+```{r}
+find.mode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+df$popularity[is.na(df$popularity)] <- find.mode(df$popularity)
+df$vote_average[is.na(df$vote_average)] <- find.mode(df$vote_average)
+df$vote_count[is.na(df$vote_count)] <- find.mode(df$vote_count)
+```
+
+```{r}
+drop <- c("imdb_id","runtime", "release_date", "X1")
+df <- df[ , !(names(df) %in% drop)]
+```
+
+```{r}
+colSums(is.na(df))
+plot_missing(df)
+```
+
+```{r}
+summary(df)
+```
+
+```{r}
+plot_correlation(df)
+plot_histogram(df)
+```
+
+```{r}
+df %>%  plot_ly(x = ~vote_count, y = ~revenue, type = "scatter")
+```
+
+```{r}
+df %>%  plot_ly(x = ~rating_mean, y = ~popularity, type = "scatter")
+```
+
+```{r}
+lm1 <- lm(formula = revenue ~ budget, data = df)
+df %>%  plot_ly(x = ~budget, y = ~revenue, type = "scatter", mode = "markers", name = "Original Scatter") %>% 
+  add_trace(x = ~budget, y = fitted.values(lm1), mode= 'lines', name = 'linear model')
+```
+
+```{r}
+df %>%  plot_ly(x = ~release_year, y = ~vote_average, type = "bar")
+```
+
