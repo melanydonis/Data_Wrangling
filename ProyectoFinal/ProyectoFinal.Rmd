@@ -1,0 +1,729 @@
+---
+title: "proyecto final"
+author: "Melany 20170474"
+date: "11/19/2019"
+output: rmarkdown::github_document
+---
+
+```{r, cache = TRUE, echo = FALSE}
+library(readr)
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(readxl)
+library(DataExplorer)
+library(zoo)
+library(stringr)
+library(ggplot2)
+library(ggloop)
+library(scales)
+
+setwd("~/Desktop/Data Wrangling/Github/ProyectoFinal")
+```
+
+#lectura
+```{r, cache = TRUE}
+
+#funcion para leer xlsx
+readDep <- function(file, r){
+  df <- read_xlsx(file, range = cell_limits(c(9,2), c(32,NA)))
+  colnames(df) <- r
+  return(df)
+}
+
+readMun <- function(file,r){
+  df <- read_xlsx(file, range = cell_limits(c(9,2), c(350,NA)))
+  colnames(df) <- r
+  return(df)
+}
+```
+
+#tidying
+```{r, cache = TRUE}
+#funcion para unir headers
+names <- function(df){
+  colnames1 <- colnames(df)
+  colnames2 <- as.character(as.vector(df[1,]))
+  #colnames(df) <- na.locf(colnames1)
+  for (n in 1:ncol(df)) {
+    if(is.na(colnames1[n])){
+      colnames(df)[n] <- paste0(colnames2[n])
+    }
+    else{
+      colnames(df)[n] <- paste0(colnames1[n],"_",colnames2[n])
+    }
+  }
+  df = df[-1,]
+  return(df)
+}
+
+#gathering 
+gathering <- function(df){
+  df <- df %>% gather(key = 'macro', value = 'value', 3:ncol(df))
+  df <- df %>% separate(macro, into = c('macro', 'micro'), sep = '_')
+  return(df)
+}
+```
+
+#2nd colnames
+```{r, cache = TRUE}
+carac <- c(NA, NA, 'TotalPob', 'LugarNacimiento', 'LugarNacimiento', 'LugarNacimiento', 'LugarNacimiento',  
+           'LugarResidencia',  'LugarResidencia',  'LugarResidencia',  'LugarResidencia',  
+           'LugarResidencia',  'PoblaCuatro', 'DificultadVer', 'DificultadVer', 'DificultadVer', 'DificultadOir', 
+           'DificultadOir', 'DificultadOir', 'DificultadCaminar', 'DificultadCaminar', 'DificultadCaminar', 
+           'DificultadRecordar', 'DificultadRecordar', 'DificultadRecordar', 'DificultadCuidadoPersonal', 
+           'DificultadCuidadoPersonal', 'DificultadCuidadoPersonal', 'DificultadComunicarse', 'DificultadComunicarse', 
+           'DificultadComunicarse', 'MujeresFert', 'MujeresHijosNacido', 'MujeresHijosNacido', 'MujeresHijosNacido',
+           'MujeresHijosNacido', 'MujeresHijosNacido', 'MujeresHijosNacido', 'MujeresHijosNacido',
+           'MujeresHijosSobrev', 'MujeresHijosSobrev', 'MujeresHijosSobrev', 'MujeresHijosSobrev', 
+           'MujeresHijosSobrev', 'MujeresHijosSobrev')
+
+educ <- c(NA, NA, 'NivelEducacion','NivelEducacion','NivelEducacion','NivelEducacion','NivelEducacion',
+          'NivelEducacion','NivelEducacion','NivelEducacion','NivelEducacion', 'CausaInasistencia',
+          'CausaInasistencia', 'CausaInasistencia','CausaInasistencia','CausaInasistencia','CausaInasistencia',
+          'CausaInasistencia','CausaInasistencia','CausaInasistencia', 'PoblaSiete', 'Lectura','Lectura','Asistencia',
+          'Asistencia','LugarEstudio','LugarEstudio','LugarEstudio','LugarEstudio')
+
+emp <- c(NA,NA,'PoblaSiete', 'PoblaAct', 'PoblaOc', 'Cesante', 'Aspirante', 'NoDeclar', 'Uno')
+
+viv <- c(NA,NA,'TotalViv', 'Vivienda', 'Vivienda', 'TipoCasa', 'TipoCasa', 'TipoCasa', 'TipoCasa', 'TipoCasa',
+         'TipoCasa', 'TipoOcup', 'TipoOcup', 'TipoOcup', 'TipoOcup', 'TipoOcup', 'Pared', 'Pared', 'Pared',
+         'Pared', 'Pared', 'Pared', 'Pared', 'Pared', 'Pared', 'Pared', 'Pared','Techo', 'Techo', 'Techo', 
+         'Techo', 'Techo', 'Techo', 'Techo', 'Techo', 'Material','Material', 'Material', 'Material', 
+         'Material', 'Material', 'Material', 'Material')
+
+#Solo dep
+pue <- c(NA, NA, 'TotalPob', 'Pueblo','Pueblo','Pueblo','Pueblo','Pueblo','Pueblo','Lengua','Lengua','Lengua',
+         'Lengua','Lengua','Lengua','Lengua', 'Lengua','Lengua','Lengua','Lengua','Lengua','Lengua',
+         'Lengua','Lengua','Lengua','Lengua','Lengua','Lengua','Lengua','Lengua','Lengua','Idioma',
+         'Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma',
+         'Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma',
+         'Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma','Idioma', 'PoblaCuatro')
+
+hog <- c(NA, NA, 'DistHogares', 'DistHogares', 'Lugar', 'Lugar')
+
+tec <- c(NA, NA, 'PoblaSiete', 'Celular', 'Celular', 'Celular', 'Compu', 'Compu', 'Compu', 'Internet', 'Internet',
+         'Internet', 'Uso', 'Uso', 'Uso', 'Uso')
+
+pobla <- c(NA ,NA, 'TotalPob', 'Genero', 'Genero', 'Edad', 'Edad', 'Edad', 'Edad', 'Edad', 'GrupoQuinquenal', 
+           'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 
+           'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 
+           'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 
+           'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 'GrupoQuinquenal', 
+           'Zona', 'Zona', 'ParentescoJefe', 'ParentescoJefe', 'ParentescoJefe', 'ParentescoJefe', 
+           'ParentescoJefe', 'ParentescoJefe', 'ParentescoJefe', 'ParentescoJefe', 'ParentescoJefe', 
+           'ParentescoJefe', 'ParentescoJefe', 'PoblaCol', 'PoblaDiez', 'EstadoCivil', 'EstadoCivil', 'EstadoCivil', 
+           'EstadoCivil', 'EstadoCivil', 'EstadoCivil')
+```
+
+#datos y organizacion
+```{r, cache = TRUE}
+carac_dep <- readDep('Departamento/caracteristicas_departamental.xlsx', carac)
+carac_mun <- readMun('Municipio/caracteristicas_municipal.xlsx', carac)
+educ_dep <- readDep('Departamento/educacion_departamental.xlsx', educ)
+educ_mun <- readMun('Municipio/educacion_municipal.xlsx', educ)
+emp_dep <- readDep('Departamento/empleo_departamental.xlsx', emp)
+emp_mun <- readMun('Municipio/empleo_municipal.xlsx', emp)
+viv_dep <- readDep('Departamento/vivienda_departamental.xlsx', viv)
+viv_mun <- readMun('Municipio/vivienda_municipal.xlsx', viv)
+pue_dep <- readDep('Departamento/pueblo_departamental.xlsx', pue)
+hog_dep <- readDep('Departamento/hogares_departamental.xlsx', hog)
+hog_mun <- readMun('Municipio/hogares_municipal.xlsx', hog)
+tec_dep <- readDep('Departamento/tecnologia_departamental.xlsx', tec)
+tec_mun <- readMun('Municipio/tecnologia_municipal.xlsx', tec)
+pobla_dep <- readDep('Departamento/poblacion_departamental.xlsx', pobla)
+pobla_mun <- readMun('Municipio/poblacion_municipal.xlsx', pobla)
+
+carac_dep <- names(carac_dep)
+carac_mun <- names(carac_mun)
+educ_dep <- names(educ_dep)
+educ_mun <- names(educ_mun)
+emp_dep <- names(emp_dep)
+emp_mun <- names(emp_mun)
+viv_dep <- names(viv_dep)
+viv_mun <- names(viv_mun)
+pue_dep <- names(pue_dep)
+hog_dep <- names(hog_dep)
+hog_mun <- names(hog_mun)
+tec_dep <- names(tec_dep)
+tec_mun <- names(tec_mun)
+pobla_dep <- names(pobla_dep)
+pobla_mun <- names(pobla_mun)
+
+carac_dep <- gathering(carac_dep)
+carac_mun <- gathering(carac_mun)
+educ_dep <- gathering(educ_dep)
+educ_mun <- gathering(educ_mun)
+emp_dep <- gathering(emp_dep)
+emp_mun <- gathering(emp_mun)
+viv_dep <- gathering(viv_dep)
+viv_mun <- gathering(viv_mun)
+pue_dep <- gathering(pue_dep)
+hog_dep <- gathering(hog_dep)
+hog_mun <- gathering(hog_mun)
+tec_dep <- gathering(tec_dep)
+tec_mun <- gathering(tec_mun)
+pobla_dep <- gathering(pobla_dep)
+pobla_mun <- gathering(pobla_mun)
+```
+
+# DEPARTAMENTOS
+#missing values
+```{r, cache = TRUE}
+departamentos <- rbind(carac_dep, educ_dep, viv_dep, pue_dep, hog_dep, tec_dep, pobla_dep,  emp_dep)
+municipios <- rbind(carac_mun, educ_mun, viv_mun, hog_mun, tec_mun, pobla_mun,  emp_mun)
+departamentos <- departamentos %>% distinct()
+departamentos$value <- as.double(departamentos$value)
+departamentos$PerTot <- 1:nrow(departamentos)
+plot_missing(departamentos)
+```
+
+#lista con departamentos y porcentajes
+```{r, cache = TRUE}
+
+Total <- departamentos %>% filter(micro == 'Total de personas')
+Total
+for(i in 1:nrow(departamentos)){
+  departamentos$PerTot[i] <- (100*departamentos$value[i])/Total$value[which(Total$Departamento == departamentos$Departamento[i])]
+  }
+
+flw <- vector("list", length(unique(departamentos$macro)))
+for(i in unique(departamentos$macro)){
+  flw[[i]] <- departamentos %>% filter(macro == i)
+}
+```
+
+#funciones para graficas
+```{r}
+histogram <- function(df, data){
+  ggplot(df, aes(x = micro, y = value, fill = Departamento)) +
+    geom_bar(stat = 'identity', position = 'dodge') +
+    ggtitle(data)
+}
+
+
+histogram2 <- function(df, data){
+  ggplot(df, aes(x = micro, y = PerTot, fill = Departamento)) +
+    geom_bar(stat = 'identity', position = 'dodge') +
+    ggtitle(data)
+}
+
+
+boxplot <- function(df, data){
+  ggplot(df, aes(x = micro, y = value)) +
+    geom_boxplot() +
+    ggtitle(data)
+}
+boxplot2 <- function(df, data){
+  ggplot(df, aes(x = micro, y = PerTot)) +
+    geom_boxplot() +
+    ggtitle(data)
+}
+
+boxplot3 <- function(df, data){
+  ggplot(df, aes(x = micro, y = new_PerTot)) +
+    geom_boxplot() +
+    ggtitle(data)
+}
+```
+
+#histogramas Departamento
+```{r}
+ggplot(Total, aes(x = Departamento, y = value))+
+  geom_bar(stat = 'identity', position = 'dodge') +
+  ggtitle('TotalPersonas')
+histogram(flw$LugarNacimiento, 'LugarNacimiento')
+histogram(flw$LugarResidencia, 'LugarResidencia')
+histogram(flw$PoblaCuatro, 'PoblaCuatro')
+histogram(flw$DificultadVer, 'DificultadVer')
+histogram(flw$DificultadOir, 'DificultadOir')
+histogram(flw$DificultadCaminar, 'DificultadCaminar')
+histogram(flw$DificultadRecordar, 'DificultadRecordar')
+histogram(flw$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal')
+histogram(flw$DificultadComunicarse, 'DificultadComunicarse')
+histogram(flw$MujeresFert, 'MujeresFert')
+histogram(flw$MujeresHijosNacido, 'MujeresHijosNacido')
+histogram(flw$MujeresHijosSobrev, 'MujeresHijosSobrev')
+histogram(flw$NivelEducacion, 'NivelEducacion')
+histogram(flw$CausaInasistencia, 'CausaInasistencia')
+histogram(flw$PoblaSiete, 'PoblaSiete')
+histogram(flw$Lectura, 'Lectura')
+histogram(flw$Asistencia, 'Asistencia')
+histogram(flw$LugarEstudio, 'LugarEstudio')
+histogram(flw$TotalViv, 'TotalViv')
+histogram(flw$Vivienda, 'Vivienda')
+histogram(flw$TipoCasa, 'TipoCasa')
+histogram(flw$TipoOcup, 'TipoOcup')
+histogram(flw$Pared, 'Pared')
+histogram(flw$Techo, 'Techo')
+histogram(flw$Material, 'Material')
+histogram(flw$Pueblo, 'Pueblo')
+histogram(flw$Lengua, 'Lengua')
+histogram(flw$Idioma, 'Idioma')
+histogram(flw$DistHogares, 'DistHogares')
+histogram(flw$Lugar, 'Lugar')
+histogram(flw$Celular, 'Celular')
+histogram(flw$Compu, 'Compu')
+histogram(flw$Internet, 'Internet')
+histogram(flw$Uso, 'Uso')
+histogram(flw$Genero, 'Genero')
+histogram(flw$Edad, 'Edad')
+histogram(flw$GrupoQuinquenal, 'GrupoQuinquenal')
+histogram(flw$Zona, 'Zona')
+histogram(flw$ParentescoJefe, 'ParentescoJefe')
+histogram(flw$PoblaCol, 'PoblaCol')
+histogram(flw$PoblaDiez, 'PoblaDiez')
+histogram(flw$EstadoCivil, 'EstadoCivil')
+histogram(flw$PoblaAct,'PoblaAct')
+histogram(flw$PoblaOc,'PoblaOc')
+histogram(flw$Cesante, 'Cesante')
+histogram(flw$Aspirante, 'Aspirante')
+histogram(flw$NoDeclar, 'NoDeclar')
+histogram(flw$Uno, 'Uno')
+```
+
+#piechart genero
+```{r}
+ggplot(flw$Genero, aes(x = '' , y = PerTot, fill = micro)) +
+  geom_bar(stat = 'identity') + coord_polar(('y')) + scale_fill_manual(values=c('#0039bf', "#672cc7"))  +
+  theme(axis.text.x=element_blank())
+```
+
+#Histogramas Departamentos Porcentajes
+```{r}
+histogram2(flw$LugarNacimiento, 'LugarNacimiento')
+histogram2(flw$LugarResidencia, 'LugarResidencia')
+histogram2(flw$PoblaCuatro, 'PoblaCuatro')
+histogram2(flw$DificultadVer, 'DificultadVer')
+histogram2(flw$DificultadOir, 'DificultadOir')
+histogram2(flw$DificultadCaminar, 'DificultadCaminar')
+histogram2(flw$DificultadRecordar, 'DificultadRecordar')
+histogram2(flw$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal')
+histogram2(flw$DificultadComunicarse, 'DificultadComunicarse')
+histogram2(flw$MujeresFert, 'MujeresFert')
+histogram2(flw$MujeresHijosNacido, 'MujeresHijosNacido')
+histogram2(flw$MujeresHijosSobrev, 'MujeresHijosSobrev')
+histogram2(flw$NivelEducacion, 'NivelEducacion')
+histogram2(flw$CausaInasistencia, 'CausaInasistencia')
+histogram2(flw$PoblaSiete, 'PoblaSiete')
+histogram2(flw$Lectura, 'Lectura')
+histogram2(flw$Asistencia, 'Asistencia')
+histogram2(flw$LugarEstudio, 'LugarEstudio')
+histogram2(flw$TotalViv, 'TotalViv')
+histogram2(flw$Vivienda, 'Vivienda')
+histogram2(flw$TipoCasa, 'TipoCasa')
+histogram2(flw$TipoOcup, 'TipoOcup')
+histogram2(flw$Pared, 'Pared')
+histogram2(flw$Techo, 'Techo')
+histogram2(flw$Material, 'Material')
+histogram2(flw$Pueblo, 'Pueblo')
+histogram2(flw$Lengua, 'Lengua')
+histogram2(flw$Idioma, 'Idioma')
+histogram2(flw$DistHogares, 'DistHogares')
+histogram2(flw$Lugar, 'Lugar')
+histogram2(flw$Celular, 'Celular')
+histogram2(flw$Compu, 'Compu')
+histogram2(flw$Internet, 'Internet')
+histogram2(flw$Uso, 'Uso')
+histogram2(flw$Genero, 'Genero')
+histogram2(flw$Edad, 'Edad')
+histogram2(flw$GrupoQuinquenal, 'GrupoQuinquenal')
+histogram2(flw$Zona, 'Zona')
+histogram2(flw$ParentescoJefe, 'ParentescoJefe')
+histogram2(flw$PoblaCol, 'PoblaCol')
+histogram2(flw$PoblaDiez, 'PoblaDiez')
+histogram2(flw$EstadoCivil, 'EstadoCivil')
+histogram2(flw$PoblaAct,'PoblaAct')
+histogram2(flw$PoblaOc,'PoblaOc')
+histogram2(flw$Cesante, 'Cesante')
+histogram2(flw$Aspirante, 'Aspirante')
+histogram2(flw$NoDeclar, 'NoDeclar')
+histogram2(flw$Uno, 'Uno')
+```
+
+#boxplots Departamentos
+```{r}
+boxplot(flw$LugarNacimiento, 'LugarNacimiento')
+boxplot(flw$LugarResidencia, 'LugarResidencia')
+boxplot(flw$PoblaCuatro, 'PoblaCuatro')
+boxplot(flw$DificultadVer, 'DificultadVer')
+boxplot(flw$DificultadOir, 'DificultadOir')
+boxplot(flw$DificultadCaminar, 'DificultadCaminar')
+boxplot(flw$DificultadRecordar, 'DificultadRecordar')
+boxplot(flw$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal')
+boxplot(flw$DificultadComunicarse, 'DificultadComunicarse')
+boxplot(flw$MujeresFert, 'MujeresFert')
+boxplot(flw$MujeresHijosNacido, 'MujeresHijosNacido')
+boxplot(flw$MujeresHijosSobrev, 'MujeresHijosSobrev')
+boxplot(flw$NivelEducacion, 'NivelEducacion')
+boxplot(flw$CausaInasistencia, 'CausaInasistencia')
+boxplot(flw$PoblaSiete, 'PoblaSiete')
+boxplot(flw$Lectura, 'Lectura')
+boxplot(flw$Asistencia, 'Asistencia')
+boxplot(flw$LugarEstudio, 'LugarEstudio')
+boxplot(flw$TotalViv, 'TotalViv')
+boxplot(flw$Vivienda, 'Vivienda')
+boxplot(flw$TipoCasa, 'TipoCasa')
+boxplot(flw$TipoOcup, 'TipoOcup')
+boxplot(flw$Pared, 'Pared')
+boxplot(flw$Techo, 'Techo')
+boxplot(flw$Material, 'Material')
+boxplot(flw$Pueblo, 'Pueblo')
+boxplot(flw$Lengua, 'Lengua')
+boxplot(flw$Idioma, 'Idioma')
+boxplot(flw$DistHogares, 'DistHogares')
+boxplot(flw$Lugar, 'Lugar')
+boxplot(flw$Celular, 'Celular')
+boxplot(flw$Compu, 'Compu')
+boxplot(flw$Internet, 'Internet')
+boxplot(flw$Uso, 'Uso')
+boxplot(flw$Genero, 'Genero')
+boxplot(flw$Edad, 'Edad')
+boxplot(flw$GrupoQuinquenal, 'GrupoQuinquenal')
+boxplot(flw$Zona, 'Zona')
+boxplot(flw$ParentescoJefe, 'ParentescoJefe')
+boxplot(flw$PoblaCol, 'PoblaCol')
+boxplot(flw$PoblaDiez, 'PoblaDiez')
+boxplot(flw$EstadoCivil, 'EstadoCivil')
+boxplot(flw$PoblaAct,'PoblaAct')
+boxplot(flw$PoblaOc,'PoblaOc')
+boxplot(flw$Cesante, 'Cesante')
+boxplot(flw$Aspirante, 'Aspirante')
+boxplot(flw$NoDeclar, 'NoDeclar')
+boxplot(flw$Uno, 'Uno')
+```
+
+#Boxlots Departamentos Porcentajes
+```{r}
+boxplot2(flw$LugarNacimiento, 'LugarNacimiento%')
+boxplot2(flw$LugarResidencia, 'LugarResidencia%')
+boxplot2(flw$PoblaCuatro, 'PoblaCuatro%')
+boxplot2(flw$DificultadVer, 'DificultadVer%')
+boxplot2(flw$DificultadOir, 'DificultadOir%')
+boxplot2(flw$DificultadCaminar, 'DificultadCaminar%')
+boxplot2(flw$DificultadRecordar, 'DificultadRecordar%')
+boxplot2(flw$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal%')
+boxplot2(flw$DificultadComunicarse, 'DificultadComunicarse%')
+boxplot2(flw$MujeresFert, 'MujeresFert%')
+boxplot2(flw$MujeresHijosNacido, 'MujeresHijosNacido%')
+boxplot2(flw$MujeresHijosSobrev, 'MujeresHijosSobrev%')
+boxplot2(flw$NivelEducacion, 'NivelEducacion%')
+boxplot2(flw$CausaInasistencia, 'CausaInasistencia%')
+boxplot2(flw$PoblaSiete, 'PoblaSiete%')
+boxplot2(flw$Lectura, 'Lectura%')
+boxplot2(flw$Asistencia, 'Asistencia%')
+boxplot2(flw$LugarEstudio, 'LugarEstudio%')
+boxplot2(flw$TotalViv, 'TotalViv%')
+boxplot2(flw$Vivienda, 'Vivienda%')
+boxplot2(flw$TipoCasa, 'TipoCasa%')
+boxplot2(flw$TipoOcup, 'TipoOcup%')
+boxplot2(flw$Pared, 'Pared%')
+boxplot2(flw$Techo, 'Techo%')
+boxplot2(flw$Material, 'Material%')
+boxplot2(flw$Pueblo, 'Pueblo%')
+boxplot2(flw$Lengua, 'Lengua%')
+boxplot2(flw$Idioma, 'Idioma%')
+boxplot2(flw$DistHogares, 'DistHogares%')
+boxplot2(flw$Lugar, 'Lugar%')
+boxplot2(flw$Celular, 'Celular%')
+boxplot2(flw$Compu, 'Compu%')
+boxplot2(flw$Internet, 'Internet%')
+boxplot2(flw$Uso, 'Uso%')
+boxplot2(flw$Genero, 'Genero%')
+boxplot2(flw$Edad, 'Edad%')
+boxplot2(flw$GrupoQuinquenal, 'GrupoQuinquenal%')
+boxplot2(flw$Zona, 'Zona%')
+boxplot2(flw$ParentescoJefe, 'ParentescoJefe%')
+boxplot2(flw$PoblaCol, 'PoblaCol%')
+boxplot2(flw$PoblaDiez, 'PoblaDiez%')
+boxplot2(flw$EstadoCivil, 'EstadoCivil%')
+boxplot2(flw$PoblaAct,'PoblaAct%')
+boxplot2(flw$PoblaOc,'PoblaOc%')
+boxplot2(flw$Cesante, 'Cesante%')
+boxplot2(flw$Aspirante, 'Aspirante%')
+boxplot2(flw$NoDeclar, 'NoDeclar%')
+boxplot2(flw$Uno, 'Uno%')
+```
+
+#Correlacion
+```{r}
+a<- departamentos %>% filter(macro == 'NivelEducacion') %>% filter(micro == 'Preprimaria')%>% select(value)
+colnames(a) <- "EducacionPreprimaria"
+f<- departamentos %>% filter(macro == 'NivelEducacion') %>% filter(micro == 'Primaria, 6')%>% select(value)
+colnames(f) <- "EducacionPrimaria"
+g<- departamentos %>% filter(macro == 'NivelEducacion') %>% filter(micro == 'Basico')%>% select(value)
+colnames(g) <- "EducacionBasico"
+h<- departamentos %>% filter(macro == 'NivelEducacion') %>% filter(micro == 'Diversificado')%>% select(value)
+colnames(h) <- "EducacionDiversificado"
+i<- departamentos %>% filter(macro == 'NivelEducacion') %>% filter(micro == 'Licenciatura')%>% select(value)
+colnames(i) <- "EducacionLicenciatura"
+j<- departamentos %>% filter(macro == 'NivelEducacion') %>% filter(micro == 'Maestria y doctorado')%>% select(value)
+colnames(j) <- "EducacionMaestriaDoctorado"
+k<- departamentos %>% filter(macro == 'CausaInasistencia') %>% filter(micro == 'Falta de dinero')%>% select(value)
+colnames(k) <- "InasistenciaFaltaDinero"
+l<- departamentos %>% filter(macro == 'CausaInasistencia') %>% filter(micro == 'Tiene que trabajar')%>% select(value)
+colnames(l) <- "InasistenciaTrabajo"
+m<- departamentos %>% filter(macro == 'CausaInasistencia') %>% filter(micro == 'No hay escuela, instituto o universidad')%>% select(value)
+colnames(m) <- "InasistenciaNoEscuela"
+n<- departamentos %>% filter(macro == 'Lectura') %>% filter(micro == 'Alfabeta')%>% select(value)
+colnames(n) <- "Alfabeta"
+o<- departamentos %>% filter(macro == 'Lectura') %>% filter(micro == 'Analfabeta')%>% select(value)
+colnames(o) <- "Analfabeta"
+p<- departamentos %>% filter(macro == 'Idioma') %>% filter(micro == 'Español')%>% select(value)
+colnames(p) <- "IdiomaEspañol"
+q<- departamentos %>% filter(macro == 'Idioma') %>% filter(micro == 'Kaqchiquel')%>% select(value)
+colnames(q) <- "IdiomaKaqchiquel"
+r<- departamentos %>% filter(macro == 'Genero') %>% filter(micro == 'Hombre')%>% select(value)
+colnames(r) <- "Hombre"
+s<- departamentos %>% filter(macro == 'Genero') %>% filter(micro == 'Mujer')%>% select(value)
+colnames(s) <- "Mujer"
+t<- departamentos %>% filter(macro == 'Zona') %>% filter(micro == 'Urbano')%>% select(value)
+colnames(t) <- "Urbano"
+u<- departamentos %>% filter(macro == 'Zona') %>% filter(micro == 'Rural')%>% select(value)
+colnames(u) <- "Rural"
+v<- departamentos %>% filter(macro == 'EstadoCivil') %>% filter(micro == 'Soltera(o)')%>% select(value)
+colnames(v) <- "Soltero"
+w<- departamentos %>% filter(macro == 'EstadoCivil') %>% filter(micro == 'Casada(o)')%>% select(value)
+colnames(w) <- "Casado"
+x<- departamentos %>% filter(macro == 'PoblaAct') %>% filter(micro == 'Población Económicamente Activa')%>% select(value)
+colnames(x) <- "PoblacionActiva"
+y<- departamentos %>% filter(macro == 'Cesante') %>% filter(micro == 'Cesante')%>% select(value)
+colnames(y) <- "PoblacionCesante"
+
+dep <- cbind(a,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y)
+dep <- dep[, !duplicated(colnames(dep))]
+plot_correlation(dep)
+```
+
+#total de personas
+```{r}
+sum(departamentos$value[which(departamentos$micro == 'Total de personas')])
+```
+
+
+#Lista Municipios con porcentaje y Funcion histograma
+```{r}
+
+guate <- municipios %>% filter(Código != '1202') %>% filter(Municipio %in% c('Villa Nueva','Guatemala','Amatitlán','Chinautla','Chuarrancho','Fraijanes','Mixco','Palencia',
+                                              'San José del Golfo','San José Pinula','San Juan Sacatepéquez','San Miguel Petapa',
+                                              'San Pedro Ayampuc','San Pedro Sacatepéquez','San Raymundo','Santa Catarina Pinula',
+                                              'Villa Canales')) 
+guate$value <- as.numeric(guate$value)
+Total <- guate %>% filter(micro == 'Total de personas')
+for(i in 1:nrow(guate)){
+  guate$PerTot[i] <- 100*guate$value[i]/Total$value[which(Total$Municipio == guate$Municipio[i])]
+}
+
+fl <- vector("list", length(unique(guate$macro)))
+for(i in unique(guate$macro)){
+  fl[[i]] <- guate %>% filter(macro == i)
+}
+
+histogram <- function(df, data){
+  ggplot(df, aes(x = micro, y = value, fill = Municipio)) +
+    geom_bar(stat = 'identity', position = 'dodge') +
+    ggtitle(data)
+}
+histogram2 <- function(df, data){
+  ggplot(df, aes(x = micro, y = PerTot, fill = Municipio)) +
+    geom_bar(stat = 'identity', position = 'dodge') +
+    ggtitle(data)
+}
+```
+
+#Histogramas Municipalidades
+```{r}
+histogram(fl$LugarNacimiento, 'LugarNacimiento')
+histogram(fl$LugarResidencia, 'LugarResidencia')
+histogram(fl$PoblaCuatro, 'PoblaCuatro')
+histogram(fl$DificultadVer, 'DificultadVer')
+histogram(fl$DificultadOir, 'DificultadOir')
+histogram(fl$DificultadCaminar, 'DificultadCaminar')
+histogram(fl$DificultadRecordar, 'DificultadRecordar')
+histogram(fl$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal')
+histogram(fl$DificultadComunicarse, 'DificultadComunicarse')
+histogram(fl$MujeresFert, 'MujeresFert')
+histogram(fl$MujeresHijosNacido, 'MujeresHijosNacido')
+histogram(fl$MujeresHijosSobrev, 'MujeresHijosSobrev')
+histogram(fl$NivelEducacion, 'NivelEducacion')
+histogram(fl$CausaInasistencia, 'CausaInasistencia')+coord_flip()
+histogram(fl$PoblaSiete, 'PoblaSiete')
+histogram(fl$Lectura, 'Lectura')
+histogram(fl$Asistencia, 'Asistencia')
+histogram(fl$LugarEstudio, 'LugarEstudio')
+histogram(fl$TotalViv, 'TotalViv')
+histogram(fl$Vivienda, 'Vivienda')
+histogram(fl$TipoCasa, 'TipoCasa')
+histogram(fl$TipoOcup, 'TipoOcup')
+histogram(fl$Pared, 'Pared')
+histogram(fl$Techo, 'Techo')
+histogram(fl$Material, 'Material')
+histogram(fl$DistHogares, 'DistHogares')
+histogram(fl$Lugar, 'Lugar')
+histogram(fl$Celular, 'Celular')
+histogram(fl$Compu, 'Compu')
+histogram(fl$Internet, 'Internet')
+histogram(fl$Uso, 'Uso')
+histogram(fl$Genero, 'Genero')
+histogram(fl$Edad, 'Edad')
+histogram(fl$GrupoQuinquenal, 'GrupoQuinquenal')
+histogram(fl$Zona, 'Zona')
+histogram(fl$ParentescoJefe, 'ParentescoJefe')
+histogram(fl$PoblaCol, 'PoblaCol')
+histogram(fl$PoblaDiez, 'PoblaDiez')
+histogram(fl$EstadoCivil, 'EstadoCivil')
+histogram(fl$PoblaAct,'PoblaAct')
+histogram(fl$PoblaOc,'PoblaOc')
+histogram(fl$Cesante, 'Cesante')
+histogram(fl$Aspirante, 'Aspirante')
+histogram(fl$NoDeclar, 'NoDeclar')
+histogram(fl$Uno, 'Uno')
+```
+
+#Histogramas Municipalidades Porcentajes
+```{r}
+histogram2(fl$LugarNacimiento, 'LugarNacimiento')
+histogram2(fl$LugarResidencia, 'LugarResidencia')
+histogram2(fl$PoblaCuatro, 'PoblaCuatro')
+histogram2(fl$DificultadVer, 'DificultadVer')
+histogram2(fl$DificultadOir, 'DificultadOir')
+histogram2(fl$DificultadCaminar, 'DificultadCaminar')
+histogram2(fl$DificultadRecordar, 'DificultadRecordar')
+histogram2(fl$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal')
+histogram2(fl$DificultadComunicarse, 'DificultadComunicarse')
+histogram2(fl$MujeresFert, 'MujeresFert')
+histogram2(fl$MujeresHijosNacido, 'MujeresHijosNacido')
+histogram2(fl$MujeresHijosSobrev, 'MujeresHijosSobrev')
+histogram2(fl$NivelEducacion, 'NivelEducacion')
+histogram2(fl$CausaInasistencia, 'CausaInasistencia')+coord_flip()
+histogram2(fl$PoblaSiete, 'PoblaSiete')
+histogram2(fl$Lectura, 'Lectura')
+histogram2(fl$Asistencia, 'Asistencia')
+histogram2(fl$LugarEstudio, 'LugarEstudio')
+histogram2(fl$TotalViv, 'TotalViv')
+histogram2(fl$Vivienda, 'Vivienda')
+histogram2(fl$TipoCasa, 'TipoCasa')
+histogram2(fl$TipoOcup, 'TipoOcup')
+histogram2(fl$Pared, 'Pared')
+histogram2(fl$Techo, 'Techo')
+histogram2(fl$Material, 'Material')
+histogram2(fl$DistHogares, 'DistHogares')
+histogram2(fl$Lugar, 'Lugar')
+histogram2(fl$Celular, 'Celular')
+histogram2(fl$Compu, 'Compu')
+histogram2(fl$Internet, 'Internet')
+histogram2(fl$Uso, 'Uso')
+histogram2(fl$Genero, 'Genero')
+histogram2(fl$Edad, 'Edad')
+histogram2(fl$GrupoQuinquenal, 'GrupoQuinquenal')
+histogram2(fl$Zona, 'Zona')
+histogram2(fl$ParentescoJefe, 'ParentescoJefe')
+histogram2(fl$PoblaCol, 'PoblaCol')
+histogram2(fl$PoblaDiez, 'PoblaDiez')
+histogram2(fl$EstadoCivil, 'EstadoCivil')
+histogram2(fl$PoblaAct,'PoblaAct')
+histogram2(fl$PoblaOc,'PoblaOc')
+histogram2(fl$Cesante, 'Cesante')
+histogram2(fl$Aspirante, 'Aspirante')
+histogram2(fl$NoDeclar, 'NoDeclar')
+histogram2(fl$Uno, 'Uno')
+```
+
+#Boxplots Municipalidades
+```{r}
+boxplot(fl$LugarNacimiento, 'LugarNacimiento%')
+boxplot(fl$LugarResidencia, 'LugarResidencia%')
+boxplot(fl$PoblaCuatro, 'PoblaCuatro%')
+boxplot(fl$DificultadVer, 'DificultadVer%')
+boxplot(fl$DificultadOir, 'DificultadOir%')
+boxplot(fl$DificultadCaminar, 'DificultadCaminar%')
+boxplot(fl$DificultadRecordar, 'DificultadRecordar%')
+boxplot(fl$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal%')
+boxplot(fl$DificultadComunicarse, 'DificultadComunicarse%')
+boxplot(fl$MujeresFert, 'MujeresFert%')
+boxplot(fl$MujeresHijosNacido, 'MujeresHijosNacido%')
+boxplot(fl$MujeresHijosSobrev, 'MujeresHijosSobrev%')
+boxplot(fl$NivelEducacion, 'NivelEducacion%')
+boxplot(fl$CausaInasistencia, 'CausaInasistencia%')
+boxplot(fl$PoblaSiete, 'PoblaSiete%')
+boxplot(fl$Lectura, 'Lectura%')
+boxplot(fl$Asistencia, 'Asistencia%')
+boxplot(fl$LugarEstudio, 'LugarEstudio%')
+boxplot(fl$TotalViv, 'TotalViv%')
+boxplot(fl$Vivienda, 'Vivienda%')
+boxplot(fl$TipoCasa, 'TipoCasa%')
+boxplot(fl$TipoOcup, 'TipoOcup%')
+boxplot(fl$Pared, 'Pared%')
+boxplot(fl$Techo, 'Techo%')
+boxplot(fl$Material, 'Material%')
+boxplot(fl$DistHogares, 'DistHogares%')
+boxplot(fl$Lugar, 'Lugar%')
+boxplot(fl$Celular, 'Celular%')
+boxplot(fl$Compu, 'Compu%')
+boxplot(fl$Internet, 'Internet%')
+boxplot(fl$Uso, 'Uso%')
+boxplot(fl$Genero, 'Genero%')
+boxplot(fl$Edad, 'Edad%')
+boxplot(fl$GrupoQuinquenal, 'GrupoQuinquenal%')
+boxplot(fl$Zona, 'Zona%')
+boxplot(fl$ParentescoJefe, 'ParentescoJefe%')
+boxplot(fl$PoblaCol, 'PoblaCol%')
+boxplot(fl$PoblaDiez, 'PoblaDiez%')
+boxplot(fl$EstadoCivil, 'EstadoCivil%')
+boxplot(fl$PoblaAct,'PoblaAct%')
+boxplot(fl$PoblaOc,'PoblaOc%')
+boxplot(fl$Cesante, 'Cesante%')
+boxplot(fl$Aspirante, 'Aspirante%')
+boxplot(fl$NoDeclar, 'NoDeclar%')
+boxplot(fl$Uno, 'Uno%')
+```
+
+#Boxplots Municipalidades Porcentajes
+```{r}
+boxplot2(fl$LugarNacimiento, 'LugarNacimiento%')
+boxplot2(fl$LugarResidencia, 'LugarResidencia%')
+boxplot2(fl$PoblaCuatro, 'PoblaCuatro%')
+boxplot2(fl$DificultadVer, 'DificultadVer%')
+boxplot2(fl$DificultadOir, 'DificultadOir%')
+boxplot2(fl$DificultadCaminar, 'DificultadCaminar%')
+boxplot2(fl$DificultadRecordar, 'DificultadRecordar%')
+boxplot2(fl$DificultadCuidadoPersonal, 'DificultadCuidadoPersonal%')
+boxplot2(fl$DificultadComunicarse, 'DificultadComunicarse%')
+boxplot2(fl$MujeresFert, 'MujeresFert%')
+boxplot2(fl$MujeresHijosNacido, 'MujeresHijosNacido%')
+boxplot2(fl$MujeresHijosSobrev, 'MujeresHijosSobrev%')
+boxplot2(fl$NivelEducacion, 'NivelEducacion%')
+boxplot2(fl$CausaInasistencia, 'CausaInasistencia%')
+boxplot2(fl$PoblaSiete, 'PoblaSiete%')
+boxplot2(fl$Lectura, 'Lectura%')
+boxplot2(fl$Asistencia, 'Asistencia%')
+boxplot2(fl$LugarEstudio, 'LugarEstudio%')
+boxplot2(fl$TotalViv, 'TotalViv%')
+boxplot2(fl$Vivienda, 'Vivienda%')
+boxplot2(fl$TipoCasa, 'TipoCasa%')
+boxplot2(fl$TipoOcup, 'TipoOcup%')
+boxplot2(fl$Pared, 'Pared%')
+boxplot2(fl$Techo, 'Techo%')
+boxplot2(fl$Material, 'Material%')
+boxplot2(fl$DistHogares, 'DistHogares%')
+boxplot2(fl$Lugar, 'Lugar%')
+boxplot2(fl$Celular, 'Celular%')
+boxplot2(fl$Compu, 'Compu%')
+boxplot2(fl$Internet, 'Internet%')
+boxplot2(fl$Uso, 'Uso%')
+boxplot2(fl$Genero, 'Genero%')
+boxplot2(fl$Edad, 'Edad%')
+boxplot2(fl$GrupoQuinquenal, 'GrupoQuinquenal%')
+boxplot2(fl$Zona, 'Zona%')
+boxplot2(fl$ParentescoJefe, 'ParentescoJefe%')
+boxplot2(fl$PoblaCol, 'PoblaCol%')
+boxplot2(fl$PoblaDiez, 'PoblaDiez%')
+boxplot2(fl$EstadoCivil, 'EstadoCivil%')
+boxplot2(fl$PoblaAct,'PoblaAct%')
+boxplot2(fl$PoblaOc,'PoblaOc%')
+boxplot2(fl$Cesante, 'Cesante%')
+boxplot2(fl$Aspirante, 'Aspirante%')
+boxplot2(fl$NoDeclar, 'NoDeclar%')
+boxplot2(fl$Uno, 'Uno%')
+```
+
